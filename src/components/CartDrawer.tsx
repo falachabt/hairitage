@@ -80,8 +80,9 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, setIsOpen }) => {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-7 w-7 self-start"
+                    className="h-7 w-7 self-start text-destructive hover:text-destructive hover:bg-destructive/10"
                     onClick={() => removeFromCart(item.id)}
+                    title="Retirer du panier"
                   >
                     <X size={15} />
                   </Button>
@@ -98,7 +99,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, setIsOpen }) => {
                 <span>Livraison</span>
                 <span>Calculé à l'étape suivante</span>
               </div>
-              <Button className="w-full" asChild onClick={() => setIsOpen(false)}>
+              <Button className="w-full bg-primary" asChild onClick={() => setIsOpen(false)}>
                 <Link to="/checkout">
                   Passer à la caisse
                 </Link>

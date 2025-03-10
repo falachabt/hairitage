@@ -34,8 +34,9 @@ const Navbar = () => {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    navigate(`/products?search=${encodeURIComponent(searchQuery)}`);
+    navigate(`/search?search=${encodeURIComponent(searchQuery)}`);
     setSearchQuery('');
+    if (isMenuOpen) setIsMenuOpen(false);
   };
 
   const categories = [
@@ -50,6 +51,7 @@ const Navbar = () => {
   const mainNavItems = [
     { name: 'Accueil', path: '/' },
     { name: 'Tous nos produits', path: '/products' },
+    { name: 'Notre Histoire', path: '/notre-histoire' },
   ];
 
   return (

@@ -19,6 +19,7 @@ import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
 import Search from "./pages/Search";
 import UserProfile from "./pages/UserProfile";
+import NotreHistoire from "./pages/NotrHistoire";
 
 const queryClient = new QueryClient();
 
@@ -32,7 +33,7 @@ const App = () => (
               <div className="flex flex-col min-h-screen overflow-x-hidden">
                 <Toaster />
                 <Sonner />
-                <div className="pt-16"> {/* Add padding for fixed navbar */}
+                <div className="min-h-screen"> {/* Changed from pt-16 to min-h-screen */}
                   <Routes>
                     <Route path="/" element={<Index />} />
                     <Route path="/products" element={<Products />} />
@@ -45,6 +46,7 @@ const App = () => (
                     <Route path="/dashboard" element={<Dashboard />} />
                     <Route path="/search" element={<Search />} />
                     <Route path="/profile" element={<UserProfile />} />
+                    <Route path="/notre-histoire" element={<NotreHistoire />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </div>

@@ -7,15 +7,17 @@ import FeaturedProducts from '@/components/FeaturedProducts';
 import Testimonials from '@/components/Testimonials';
 import Newsletter from '@/components/Newsletter';
 import Footer from '@/components/Footer';
+import PromotionalProducts from '@/components/PromotionalProducts';
 
 const Index = () => {
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="flex flex-col min-h-screen">
       <Navbar />
       <main className="flex-1">
         <Hero />
         <Categories />
         <FeaturedProducts />
+        <PromotionalProducts />
         <Testimonials />
         <Newsletter />
       </main>
