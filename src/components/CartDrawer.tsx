@@ -12,7 +12,7 @@ interface CartDrawerProps {
 }
 
 const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, setIsOpen }) => {
-  const { cart, removeFromCart, updateQuantity, cartTotal } = useCart();
+  const { cart, removeFromCart, updateQuantity, cartTotal, clearCart } = useCart();
 
   return (
     <div
@@ -97,13 +97,24 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, setIsOpen }) => {
                 <span>Livraison</span>
                 <span>Calculé à l'étape suivante</span>
               </div>
-              <Button className="w-full" asChild>
+              <Button className="w-full" asChild onClick={() => setIsOpen(false)}>
                 <Link to="/checkout">
                   Passer à la caisse
                 </Link>
               </Button>
-              <Button variant="outline" className="w-full mt-2" onClick={() => setIsOpen(false)}>
+              <Button 
+                variant="outline" 
+                className="w-full mt-2" 
+                onClick={() => setIsOpen(false)}
+              >
                 Continuer mes achats
+              </Button>
+              <Button 
+                variant="ghost" 
+                className="w-full mt-2 text-destructive hover:text-destructive" 
+                onClick={clearCart}
+              >
+                Vider le panier
               </Button>
             </div>
           </>

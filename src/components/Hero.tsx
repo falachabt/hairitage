@@ -7,12 +7,11 @@ const Hero = () => {
   return (
     <section className="relative h-[80vh] flex items-center">
       <div 
-        className="absolute inset-0 bg-gradient-to-r from-plum-900/70 to-plum-800/40 z-10"
+        className="absolute inset-0 z-10"
         style={{ 
-          backgroundImage: "url('https://images.unsplash.com/photo-1629359017944-3c1bef3adad8?q=80&w=2070')", 
+          backgroundImage: "linear-gradient(to right, rgba(88, 28, 135, 0.85), rgba(88, 28, 135, 0.6)), url('https://images.unsplash.com/photo-1629359017944-3c1bef3adad8?q=80&w=2070')", 
           backgroundSize: 'cover',
           backgroundPosition: 'center',
-          mixBlendMode: 'overlay'
         }}
       />
       
@@ -26,7 +25,7 @@ const Hero = () => {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 animate-fade-in" style={{ animationDelay: '400ms' }}>
             <Button asChild size="lg" className="text-base bg-white text-plum-900 hover:bg-cream-100">
-              <Link to="/category/new">Découvrir la Collection</Link>
+              <Link to="/products">Découvrir la Collection</Link>
             </Button>
             <Button asChild size="lg" variant="outline" className="text-base border-white text-white hover:bg-white/20">
               <Link to="/about">Notre Histoire</Link>

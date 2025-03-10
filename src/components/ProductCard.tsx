@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/hooks/use-cart';
+import { useFavorites } from '@/hooks/use-favorites';
 import { Product } from '@/types';
 
 interface ProductCardProps {
@@ -12,6 +13,18 @@ interface ProductCardProps {
 
 const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const { addToCart } = useCart();
+  const { addToFavorites, removeFromFavorites, isFavorite } = useFavorites();
+  
+  const handleToggleFavorite = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (isFavorite(product.id)) {
+      removeFromFavorites(product.id);
+    } else {
+      addToFavorites(product);
+    }
+  };
   
   return (
     <div className="product-card">
@@ -27,8 +40,12 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           variant="ghost" 
           size="icon" 
           className="absolute top-2 right-2 bg-white/80 backdrop-blur-sm hover:bg-white rounded-full h-8 w-8"
+          onClick={handleToggleFavorite}
         >
-          <Heart size={16} />
+          <Heart 
+            size={16} 
+            className={isFavorite(product.id) ? "fill-primary text-primary" : ""}
+          />
         </Button>
       </div>
       <div className="product-card-body">
