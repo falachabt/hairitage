@@ -27,13 +27,13 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   };
   
   return (
-    <div className="product-card">
-      <div className="product-card-img-container">
+    <div className="product-card bg-white rounded-lg shadow-md overflow-hidden border border-gray-100 transition-all hover:shadow-lg">
+      <div className="product-card-img-container relative">
         <Link to={`/product/${product.id}`}>
           <img
             src={product.imageUrl}
             alt={product.name}
-            className="product-card-img"
+            className="w-full h-64 object-cover product-card-img"
           />
         </Link>
         <Button 
@@ -48,12 +48,12 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           />
         </Button>
       </div>
-      <div className="product-card-body">
-        <Link to={`/product/${product.id}`} className="product-card-title">
+      <div className="p-4 product-card-body">
+        <Link to={`/product/${product.id}`} className="text-lg font-medium hover:text-primary transition-colors product-card-title">
           {product.name}
         </Link>
-        <div className="flex justify-between items-center">
-          <p className="product-card-price">{product.price.toFixed(2)} €</p>
+        <div className="flex justify-between items-center mt-2">
+          <p className="text-lg font-semibold product-card-price">{product.price.toFixed(2)} €</p>
           <Button 
             variant="outline" 
             size="sm" 

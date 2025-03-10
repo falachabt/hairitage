@@ -9,7 +9,7 @@ const Hero = () => {
       <div 
         className="absolute inset-0 z-10"
         style={{ 
-          backgroundImage: "linear-gradient(to right, rgba(88, 28, 135, 0.85), rgba(88, 28, 135, 0.6)), url('https://images.unsplash.com/photo-1629359017944-3c1bef3adad8?q=80&w=2070')", 
+          backgroundImage: "linear-gradient(to right, rgba(88, 28, 135, 0.95), rgba(88, 28, 135, 0.9)), url('https://images.unsplash.com/photo-1629359017944-3c1bef3adad8?q=80&w=2070')", 
           backgroundSize: 'cover',
           backgroundPosition: 'center',
         }}
@@ -18,7 +18,7 @@ const Hero = () => {
       <div className="container relative z-20 px-4 md:px-6">
         <div className="max-w-2xl text-white">
           <h1 className="text-4xl md:text-6xl font-bold mb-4 leading-tight animate-fade-in">
-            Révélez Votre Beauté Avec Nos Perruques d'Exception
+            Hairitage: Révélez Votre Beauté Avec Nos Perruques d'Exception
           </h1>
           <p className="text-lg md:text-xl mb-8 opacity-90 animate-fade-in" style={{ animationDelay: '200ms' }}>
             Des perruques de qualité supérieure pour une confiance et un style incomparables
