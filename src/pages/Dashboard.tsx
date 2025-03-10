@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
@@ -75,7 +74,13 @@ const Dashboard = () => {
         
         const { data: productsData, error: productsError } = await supabase
           .from('products')
-          .select('*')
+          .select(`
+            *,
+            product_images (
+              image_url,
+              is_primary
+            )
+          `)
           .in('id', productIds);
 
         if (productsError) throw productsError;
@@ -86,7 +91,9 @@ const Dashboard = () => {
             id: product.id,
             name: product.name,
             price: Number(product.price),
-            imageUrl: product.image_url || 'https://images.unsplash.com/photo-1605980625600-88d6716a8a21?q=80&w=1974',
+            imageUrl: product.product_images && product.product_images.length > 0 
+              ? product.product_images[0].image_url 
+              : 'https://images.unsplash.com/photo-1605980625600-88d6716a8a21?q=80&w=1974',
             description: product.description || '',
             category: product.category || '',
             featured: Boolean(product.featured),
@@ -97,6 +104,7 @@ const Dashboard = () => {
             length: product.length || '',
             material: product.material || '',
             capSize: product.cap_size as string[] || [],
+            product_images: product.product_images || []
           }));
           setFavorites(products);
         }
@@ -349,3 +357,4 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
+
