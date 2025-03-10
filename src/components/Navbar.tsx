@@ -55,7 +55,7 @@ const Navbar = () => {
   ];
 
   return (
-    <header className="fixed top-0 z-40 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b shadow-sm">
+    <header className="fixed top-0 z-40 w-full bg-background shadow-sm border-b">
       <div className="container flex items-center justify-between h-16 px-4 md:px-6">
         <div className="flex items-center">
           {isMobile && (
@@ -149,7 +149,7 @@ const Navbar = () => {
           isMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
         )}
       >
-        <nav className="flex flex-col p-4 bg-background h-full">
+        <nav className="flex flex-col p-4 bg-background h-full border-t">
           <form onSubmit={handleSearch} className="flex items-center mb-4">
             <Input
               type="search"

@@ -32,7 +32,7 @@ const CategoryPage = () => {
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
       <main className="flex-1">
-        <div className="bg-plum-50 py-12">
+        <div className="bg-plum-50 py-12 pt-28">
           <div className="container px-4">
             <Link to="/" className="inline-flex items-center text-muted-foreground hover:text-foreground mb-4">
               <ChevronLeft size={16} className="mr-1" />

@@ -93,6 +93,24 @@
   body {
     @apply bg-background text-foreground;
   }
+  
+  /* Personnalisation de la scrollbar */
+  ::-webkit-scrollbar {
+    @apply w-2;
+  }
+  
+  ::-webkit-scrollbar-track {
+    @apply bg-muted rounded-full;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    @apply bg-primary/50 rounded-full hover:bg-primary/70 transition-colors;
+  }
+  
+  /* Ajuster les paddings pour la navbar fixe */
+  main, .page-content {
+    @apply pt-16;
+  }
 }
 
 @layer components {
@@ -135,6 +153,11 @@
   .btn-ghost {
     @apply bg-transparent hover:bg-muted px-4 py-2 rounded-md transition-colors;
   }
+  
+  /* Style pour l'image fallback */
+  .product-img-fallback {
+    @apply bg-gradient-to-tr from-plum-100 to-cream-100 flex items-center justify-center text-plum-700;
+  }
 }
 
 /* Fix Dashboard page product_images error */
@@ -157,4 +180,23 @@ body {
 /* Fix mobile menu styling */
 .mobile-menu {
   @apply bg-background border-t;
+}
+
+/* Amélioration du CartDrawer */
+.cart-drawer-content {
+  @apply bg-background !important;
+}
+
+.cart-drawer-header {
+  @apply bg-background !important;
+  @apply border-b;
+}
+
+.cart-drawer-body {
+  @apply bg-background !important;
+}
+
+/* Styles pour les menus déroulants */
+.dropdown-menu-content {
+  @apply !bg-background !border !z-50 !shadow-md;
 }

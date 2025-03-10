@@ -33,7 +33,7 @@ const App = () => (
               <div className="flex flex-col min-h-screen overflow-x-hidden">
                 <Toaster />
                 <Sonner />
-                <div className="min-h-screen"> {/* Changed from pt-16 to min-h-screen */}
+                <div className="page-content min-h-screen"> {/* Ajout de la classe page-content */}
                   <Routes>
                     <Route path="/" element={<Index />} />
                     <Route path="/products" element={<Products />} />

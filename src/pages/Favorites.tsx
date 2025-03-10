@@ -15,7 +15,7 @@ const Favorites = () => {
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
       <main className="flex-1">
-        <div className="bg-plum-50 py-12">
+        <div className="bg-plum-50 py-12 pt-28">
           <div className="container px-4 md:px-6">
             <h1 className="text-3xl md:text-4xl font-bold mb-2">Mes Favoris</h1>
             <p className="text-muted-foreground">Les perruques que vous avez enregistrées</p>

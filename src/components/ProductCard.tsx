@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Heart, Plus, Minus, ShoppingBag } from 'lucide-react';
+import { Heart, Plus, Minus, ShoppingBag, ImageOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/hooks/use-cart';
 import { useFavorites } from '@/hooks/use-favorites';
@@ -47,16 +47,36 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
       removeFromCart(product.id);
     }
   };
+
+  const hasValidImage = product.imageUrl && !product.imageUrl.includes('undefined') && !product.imageUrl.includes('null');
   
   return (
     <Card className="product-card overflow-hidden">
       <div className="product-card-img-container relative">
         <Link to={`/product/${product.id}`}>
-          <img
-            src={product.imageUrl}
-            alt={product.name}
-            className="w-full h-64 object-cover product-card-img"
-          />
+          {hasValidImage ? (
+            <img
+              src={product.imageUrl}
+              alt={product.name}
+              className="w-full h-64 object-cover product-card-img"
+              onError={(e) => {
+                e.currentTarget.onerror = null; 
+                e.currentTarget.parentElement?.classList.add('product-img-fallback');
+                e.currentTarget.style.display = 'none';
+                const icon = document.createElement('div');
+                icon.innerHTML = `<div class="flex flex-col items-center justify-center h-full">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mb-2"><line x1="2" x2="22" y1="2" y2="22"></line><path d="M10.41 10.41a2 2 0 1 1-2.83-2.83"></path><line x1="13.5" x2="6.5" y1="13.5" y2="20.5"></line><path d="M14 14v6"></path><path d="M18 18h-4"></path><path d="M14 3v4"></path><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"></path></svg>
+                  <span>${product.name}</span>
+                </div>`;
+                e.currentTarget.parentElement?.appendChild(icon.firstChild as Node);
+              }}
+            />
+          ) : (
+            <div className="product-img-fallback w-full h-64 flex flex-col items-center justify-center">
+              <ImageOff size={48} className="mb-2" />
+              <span className="text-sm text-center px-2">{product.name}</span>
+            </div>
+          )}
         </Link>
         <Button 
           variant="ghost" 

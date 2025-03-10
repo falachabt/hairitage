@@ -44,7 +44,7 @@ const Search = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
-      <main className="flex-1 container py-8 pt-24">
+      <main className="flex-1 container py-8 pt-28">
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-6">Recherche</h1>
           <form onSubmit={handleSearch} className="flex gap-2 max-w-xl mb-8">
