@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Product } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
@@ -10,11 +9,15 @@ const fetchProducts = async (): Promise<Product[]> => {
     .from('products')
     .select(`
       *,
-      product_images(*)
+      product_images (
+        image_url,
+        is_primary
+      )
     `);
 
   if (error) {
-    throw new Error(error.message);
+    console.error('Error fetching products from Supabase, using mock data:', error);
+    return getMockProducts();
   }
 
   // Transform database products to match frontend Product type
@@ -22,9 +25,7 @@ const fetchProducts = async (): Promise<Product[]> => {
     id: product.id,
     name: product.name,
     price: Number(product.price),
-    imageUrl: product.product_images && product.product_images.length > 0 
-      ? product.product_images[0].image_url 
-      : 'https://images.unsplash.com/photo-1605980625600-88d6716a8a21?q=80&w=1974',
+    imageUrl: product.product_images?.[0]?.image_url || 'https://images.unsplash.com/photo-1605980625600-88d6716a8a21?q=80&w=1974',
     description: product.description,
     category: product.category,
     featured: product.featured,
@@ -170,14 +171,7 @@ export const useProducts = () => {
   // Use React Query to fetch products
   const { data: products = [], isLoading, error } = useQuery({
     queryKey: ['products'],
-    queryFn: async () => {
-      try {
-        return await fetchProducts();
-      } catch (error) {
-        console.error('Error fetching products from Supabase, using mock data:', error);
-        return getMockProducts();
-      }
-    },
+    queryFn: fetchProducts,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
   

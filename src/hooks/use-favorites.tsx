@@ -21,54 +21,66 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const { toast } = useToast();
   const { user } = useAuth();
   
-  // Load favorites from localStorage or Supabase depending on authentication status
   useEffect(() => {
     const loadFavorites = async () => {
-      if (user) {
-        // User is logged in, fetch favorites from Supabase
-        try {
-          const { data: favoritesData, error: favoritesError } = await supabase
-            .from('user_favorites')
-            .select('product_id')
-            .eq('user_id', user.id);
-            
-          if (favoritesError) throw favoritesError;
-          
-          if (favoritesData && favoritesData.length > 0) {
-            // Get existing product details from localStorage if available
-            const savedFavorites = localStorage.getItem('favorites');
-            let localFavorites: Product[] = [];
-            
-            if (savedFavorites) {
-              try {
-                localFavorites = JSON.parse(savedFavorites);
-              } catch (error) {
-                console.error('Failed to parse favorites from localStorage', error);
-              }
-            }
-            
-            // Filter local favorites to match the ones in the database
-            const productIds = favoritesData.map(fav => fav.product_id);
-            const matchingFavorites = localFavorites.filter(
-              product => productIds.includes(product.id)
-            );
-            
-            setFavorites(matchingFavorites);
-          }
-        } catch (error) {
-          console.error('Failed to fetch favorites from Supabase', error);
-          // Fall back to localStorage
-          const savedFavorites = localStorage.getItem('favorites');
-          if (savedFavorites) {
-            try {
-              setFavorites(JSON.parse(savedFavorites));
-            } catch (error) {
-              console.error('Failed to parse favorites from localStorage', error);
-            }
+      if (!user) {
+        const savedFavorites = localStorage.getItem('favorites');
+        if (savedFavorites) {
+          try {
+            setFavorites(JSON.parse(savedFavorites));
+          } catch (error) {
+            console.error('Failed to parse favorites from localStorage', error);
           }
         }
-      } else {
-        // User is not logged in, use localStorage
+        return;
+      }
+
+      try {
+        const { data: userFavorites, error: favoritesError } = await supabase
+          .from('user_favorites')
+          .select('product_id')
+          .eq('user_id', user.id);
+
+        if (favoritesError) throw favoritesError;
+
+        if (userFavorites) {
+          // Get product details for each favorite
+          const productIds = userFavorites.map(fav => fav.product_id);
+          const { data: productsData, error: productsError } = await supabase
+            .from('products')
+            .select(`
+              *,
+              product_images (
+                image_url,
+                is_primary
+              )
+            `)
+            .in('id', productIds);
+
+          if (productsError) throw productsError;
+
+          if (productsData) {
+            setFavorites(productsData.map(product => ({
+              id: product.id,
+              name: product.name,
+              price: product.price,
+              imageUrl: product.product_images?.[0]?.image_url || 'https://images.unsplash.com/photo-1605980625600-88d6716a8a21?q=80&w=1974',
+              description: product.description,
+              category: product.category,
+              featured: product.featured,
+              inStock: product.in_stock,
+              rating: product.rating,
+              reviews: product.reviews,
+              colors: product.colors,
+              length: product.length,
+              material: product.material,
+              capSize: product.cap_size,
+            })));
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch favorites', error);
+        // Fall back to localStorage
         const savedFavorites = localStorage.getItem('favorites');
         if (savedFavorites) {
           try {
@@ -103,12 +115,9 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
               product_id: product.id
             });
             
-          if (error) {
-            throw error;
-          }
+          if (error) throw error;
         } catch (error) {
           console.error('Failed to save favorite to Supabase', error);
-          // Don't revert the UI change to avoid confusion
         }
       }
       
@@ -134,12 +143,9 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           .eq('user_id', user.id)
           .eq('product_id', productId);
           
-        if (error) {
-          throw error;
-        }
+        if (error) throw error;
       } catch (error) {
         console.error('Failed to remove favorite from Supabase', error);
-        // Don't revert the UI change to avoid confusion
       }
     }
     
@@ -163,9 +169,7 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           .delete()
           .eq('user_id', user.id);
           
-        if (error) {
-          throw error;
-        }
+        if (error) throw error;
       } catch (error) {
         console.error('Failed to clear favorites from Supabase', error);
       }
