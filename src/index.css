@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -94,9 +93,9 @@
     @apply bg-background text-foreground;
   }
   
-  /* Personnalisation de la scrollbar */
+  /* Custom scrollbar styling */
   ::-webkit-scrollbar {
-    @apply w-2;
+    @apply w-1.5;
   }
   
   ::-webkit-scrollbar-track {
@@ -106,14 +105,19 @@
   ::-webkit-scrollbar-thumb {
     @apply bg-primary/50 rounded-full hover:bg-primary/70 transition-colors;
   }
-  
-  /* Ajuster les paddings pour la navbar fixe */
-  main, .page-content {
-    @apply pt-16;
-  }
 }
 
 @layer components {
+  /* Fix navbar spacing - remove the global pt-16 which causes issues */
+  main {
+    @apply w-full;
+  }
+  
+  /* Page-specific padding adjustments */
+  .page-header {
+    @apply pt-24 pb-8;
+  }
+  
   .product-card {
     @apply flex flex-col rounded-lg overflow-hidden transition-all duration-300 hover:shadow-lg border border-gray-200 bg-white;
   }
@@ -154,7 +158,7 @@
     @apply bg-transparent hover:bg-muted px-4 py-2 rounded-md transition-colors;
   }
   
-  /* Style pour l'image fallback */
+  /* Style for the image fallback */
   .product-img-fallback {
     @apply bg-gradient-to-tr from-plum-100 to-cream-100 flex items-center justify-center text-plum-700;
   }
@@ -174,15 +178,15 @@ body {
 /* Ensure modal and dropdown backgrounds are solid */
 .dropdown-menu-content,
 .dialog-content {
-  @apply bg-background border shadow-md;
+  @apply bg-background border shadow-md !important;
 }
 
-/* Fix mobile menu styling */
+/* Fix mobile menu styling with solid background */
 .mobile-menu {
   @apply bg-background border-t;
 }
 
-/* Amélioration du CartDrawer */
+/* Cart drawer improvements */
 .cart-drawer-content {
   @apply bg-background !important;
 }
@@ -196,7 +200,7 @@ body {
   @apply bg-background !important;
 }
 
-/* Styles pour les menus déroulants */
+/* Styles for the menus */
 .dropdown-menu-content {
   @apply !bg-background !border !z-50 !shadow-md;
 }

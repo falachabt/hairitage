@@ -7,7 +7,7 @@ const NotreHistoire = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
-      <main className="flex-1 container py-8 pt-24">
+      <main className="flex-1 container py-8 pt-28">
         <div className="max-w-3xl mx-auto">
           <h1 className="text-4xl font-bold mb-8">Notre Histoire</h1>
           
