@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/use-auth';
@@ -54,6 +53,29 @@ const profileSchema = z.object({
   country: z.string().optional(),
 });
 
+const getFavoriteProducts = async (favorites: any[]) => {
+  if (!favorites?.length) return [];
+  
+  const productIds = favorites.map(fav => fav.product_id);
+  const { data: products } = await supabase
+    .from('products')
+    .select(`
+      *,
+      product_images (
+        image_url,
+        is_primary
+      )
+    `)
+    .in('id', productIds);
+
+  if (!products) return [];
+
+  return products.map(product => ({
+    ...product,
+    imageUrl: product.product_images?.[0]?.image_url || 'https://images.unsplash.com/photo-1605980625600-88d6716a8a21'
+  }));
+};
+
 const Dashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -84,14 +106,12 @@ const Dashboard = () => {
     },
   });
   
-  // Redirect if not logged in
   useEffect(() => {
     if (!user) {
       navigate('/login');
     }
   }, [user, navigate]);
   
-  // Fetch profile data
   useEffect(() => {
     const fetchProfile = async () => {
       if (!user) return;
@@ -124,7 +144,6 @@ const Dashboard = () => {
     fetchProfile();
   }, [user, form]);
   
-  // Fetch orders
   useEffect(() => {
     const fetchOrders = async () => {
       if (!user) return;
@@ -149,7 +168,6 @@ const Dashboard = () => {
     fetchOrders();
   }, [user]);
   
-  // Fetch favorites
   useEffect(() => {
     const fetchFavorites = async () => {
       if (!user) return;
@@ -162,7 +180,6 @@ const Dashboard = () => {
           
         if (favoritesError) throw favoritesError;
         
-        // Get product details for each favorite
         if (favoritesData && favoritesData.length > 0) {
           const productIds = favoritesData.map(fav => fav.product_id);
           const { data: productsData, error: productsError } = await supabase
@@ -172,7 +189,6 @@ const Dashboard = () => {
             
           if (productsError) throw productsError;
           
-          // Transform database products to match frontend Product type
           const transformedProducts = productsData.map(p => ({
             id: p.id,
             name: p.name,

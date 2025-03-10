@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Mail, Phone, MapPin, Facebook, Instagram, Youtube } from 'lucide-react';
@@ -9,7 +8,7 @@ const Footer = () => {
       <div className="container px-4 md:px-6 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
-            <h3 className="text-xl font-bold mb-4">WigShopper</h3>
+            <h3 className="text-xl font-bold mb-4">Hairitage</h3>
             <p className="text-plum-100 mb-4">
               Votre destination pour des perruques de qualité supérieure, offrant style, confiance et confort.
             </p>
@@ -111,7 +110,7 @@ const Footer = () => {
         </div>
         
         <div className="border-t border-plum-800 mt-8 pt-8 text-center text-plum-300 text-sm">
-          <p>&copy; {new Date().getFullYear()} WigShopper. Tous droits réservés.</p>
+          <p>&copy; {new Date().getFullYear()} Hairitage. Tous droits réservés.</p>
         </div>
       </div>
     </footer>

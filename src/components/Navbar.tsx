@@ -51,7 +51,7 @@ const Navbar = () => {
             </Button>
           )}
           <Link to="/" className="flex items-center">
-            <span className="text-xl font-bold text-primary">WigShopper</span>
+            <span className="text-xl font-bold text-primary">Hairitage</span>
           </Link>
         </div>
 
@@ -125,7 +125,7 @@ const Navbar = () => {
       {/* Mobile Menu */}
       <div
         className={cn(
-          "fixed inset-0 top-16 z-30 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:hidden",
+          "fixed inset-0 top-16 z-30 bg-white md:hidden",
           isMenuOpen ? "flex flex-col" : "hidden"
         )}
       >

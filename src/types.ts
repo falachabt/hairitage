@@ -13,6 +13,7 @@ export interface Product {
   length?: string;
   material?: string;
   capSize?: string[];
+  product_images?: Array<{ image_url: string; is_primary: boolean }>;
 }
 
 export interface CartItem extends Product {

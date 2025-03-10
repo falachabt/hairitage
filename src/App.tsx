@@ -27,20 +27,22 @@ const App = () => (
         <AuthProvider>
           <CartProvider>
             <FavoritesProvider>
-              <Toaster />
-              <Sonner />
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/products" element={<Products />} />
-                <Route path="/product/:productId" element={<ProductDetail />} />
-                <Route path="/category/:categoryId" element={<CategoryPage />} />
-                <Route path="/checkout" element={<Checkout />} />
-                <Route path="/favorites" element={<Favorites />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/signup" element={<Signup />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
+              <div className="flex flex-col min-h-screen overflow-x-hidden">
+                <Toaster />
+                <Sonner />
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/products" element={<Products />} />
+                  <Route path="/product/:productId" element={<ProductDetail />} />
+                  <Route path="/category/:categoryId" element={<CategoryPage />} />
+                  <Route path="/checkout" element={<Checkout />} />
+                  <Route path="/favorites" element={<Favorites />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/signup" element={<Signup />} />
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </div>
             </FavoritesProvider>
           </CartProvider>
         </AuthProvider>
