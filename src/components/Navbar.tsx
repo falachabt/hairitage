@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X, ShoppingBag, Search, Heart, User, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -8,6 +8,8 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import CartDrawer from './CartDrawer';
 import { useCart } from '@/hooks/use-cart';
 import { useFavorites } from '@/hooks/use-favorites';
+import { useAuth } from '@/hooks/use-auth';
+import { Input } from '@/components/ui/input';
 
 import {
   DropdownMenu,
@@ -19,13 +21,22 @@ import {
 const Navbar = () => {
   const isMobile = useIsMobile();
   const location = useLocation();
+  const navigate = useNavigate();
   const { cartCount } = useCart();
   const { favoritesCount } = useFavorites();
+  const { user } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
   const toggleCart = () => setIsCartOpen(!isCartOpen);
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    navigate(`/products?search=${encodeURIComponent(searchQuery)}`);
+    setSearchQuery('');
+  };
 
   const categories = [
     { name: 'Nouveautés', path: '/category/new' },
@@ -42,7 +53,7 @@ const Navbar = () => {
   ];
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+    <header className="fixed top-0 z-40 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b shadow-sm">
       <div className="container flex items-center justify-between h-16 px-4 md:px-6">
         <div className="flex items-center">
           {isMobile && (
@@ -79,7 +90,7 @@ const Navbar = () => {
                   <ChevronDown size={14} />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="center" className="w-48">
+              <DropdownMenuContent align="center" className="w-48 bg-background border shadow-md">
                 {categories.map((category) => (
                   <DropdownMenuItem key={category.path} asChild>
                     <Link to={category.path}>{category.name}</Link>
@@ -91,11 +102,18 @@ const Navbar = () => {
         )}
 
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" asChild className="hidden md:flex">
-            <Link to="/search">
-              <Search size={20} />
-            </Link>
-          </Button>
+          <form onSubmit={handleSearch} className="hidden md:flex items-center mr-2 relative">
+            <Input
+              type="search"
+              placeholder="Rechercher..."
+              className="w-[180px]"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            <Button type="submit" size="icon" variant="ghost" className="absolute right-0">
+              <Search size={18} />
+            </Button>
+          </form>
           <Button variant="ghost" size="icon" asChild className="hidden md:flex relative">
             <Link to="/favorites">
               <Heart size={20} />
@@ -107,7 +125,7 @@ const Navbar = () => {
             </Link>
           </Button>
           <Button variant="ghost" size="icon" asChild className="hidden md:flex">
-            <Link to="/account">
+            <Link to={user ? "/dashboard" : "/login"}>
               <User size={20} />
             </Link>
           </Button>
@@ -125,11 +143,24 @@ const Navbar = () => {
       {/* Mobile Menu */}
       <div
         className={cn(
-          "fixed inset-0 top-16 z-30 bg-white md:hidden",
-          isMenuOpen ? "flex flex-col" : "hidden"
+          "fixed inset-0 top-16 z-30 bg-background md:hidden transition-opacity duration-200",
+          isMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
         )}
       >
-        <nav className="flex flex-col p-4">
+        <nav className="flex flex-col p-4 bg-background h-full">
+          <form onSubmit={handleSearch} className="flex items-center mb-4">
+            <Input
+              type="search"
+              placeholder="Rechercher..."
+              className="w-full"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            <Button type="submit" size="icon" variant="ghost" className="ml-2">
+              <Search size={18} />
+            </Button>
+          </form>
+          
           {mainNavItems.map((item) => (
             <Link
               key={item.path}
@@ -160,12 +191,6 @@ const Navbar = () => {
           
           <div className="flex gap-4 mt-4">
             <Button variant="outline" asChild className="flex-1">
-              <Link to="/search" onClick={() => setIsMenuOpen(false)}>
-                <Search size={18} className="mr-2" />
-                Recherche
-              </Link>
-            </Button>
-            <Button variant="outline" asChild className="flex-1">
               <Link to="/favorites" onClick={() => setIsMenuOpen(false)}>
                 <Heart size={18} className="mr-2" />
                 Favoris
@@ -178,9 +203,9 @@ const Navbar = () => {
             </Button>
           </div>
           <Button variant="outline" asChild className="mt-2">
-            <Link to="/account" onClick={() => setIsMenuOpen(false)}>
+            <Link to={user ? "/dashboard" : "/login"} onClick={() => setIsMenuOpen(false)}>
               <User size={18} className="mr-2" />
-              Compte
+              {user ? "Mon Compte" : "Connexion"}
             </Link>
           </Button>
         </nav>

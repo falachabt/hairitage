@@ -17,6 +17,8 @@ import Favorites from "./pages/Favorites";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
+import Search from "./pages/Search";
+import UserProfile from "./pages/UserProfile";
 
 const queryClient = new QueryClient();
 
@@ -30,18 +32,22 @@ const App = () => (
               <div className="flex flex-col min-h-screen overflow-x-hidden">
                 <Toaster />
                 <Sonner />
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/products" element={<Products />} />
-                  <Route path="/product/:productId" element={<ProductDetail />} />
-                  <Route path="/category/:categoryId" element={<CategoryPage />} />
-                  <Route path="/checkout" element={<Checkout />} />
-                  <Route path="/favorites" element={<Favorites />} />
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/signup" element={<Signup />} />
-                  <Route path="/dashboard" element={<Dashboard />} />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
+                <div className="pt-16"> {/* Add padding for fixed navbar */}
+                  <Routes>
+                    <Route path="/" element={<Index />} />
+                    <Route path="/products" element={<Products />} />
+                    <Route path="/product/:productId" element={<ProductDetail />} />
+                    <Route path="/category/:categoryId" element={<CategoryPage />} />
+                    <Route path="/checkout" element={<Checkout />} />
+                    <Route path="/favorites" element={<Favorites />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/signup" element={<Signup />} />
+                    <Route path="/dashboard" element={<Dashboard />} />
+                    <Route path="/search" element={<Search />} />
+                    <Route path="/profile" element={<UserProfile />} />
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </div>
               </div>
             </FavoritesProvider>
           </CartProvider>

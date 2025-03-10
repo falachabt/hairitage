@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -96,7 +97,7 @@
 
 @layer components {
   .product-card {
-    @apply flex flex-col rounded-lg overflow-hidden transition-all duration-300 bg-white hover:shadow-lg border border-gray-200;
+    @apply flex flex-col rounded-lg overflow-hidden transition-all duration-300 hover:shadow-lg border border-gray-200 bg-white;
   }
   
   .product-card-img-container {
@@ -136,3 +137,24 @@
   }
 }
 
+/* Fix Dashboard page product_images error */
+.dashboard-product-image {
+  @apply w-full h-24 object-cover rounded-md;
+}
+
+/* Make sure Navbar fixed position has proper spacing */
+body {
+  margin-top: 0;
+  padding-top: 0;
+}
+
+/* Ensure modal and dropdown backgrounds are solid */
+.dropdown-menu-content,
+.dialog-content {
+  @apply bg-background border shadow-md;
+}
+
+/* Fix mobile menu styling */
+.mobile-menu {
+  @apply bg-background border-t;
+}

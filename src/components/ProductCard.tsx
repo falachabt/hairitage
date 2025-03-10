@@ -27,7 +27,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   };
   
   return (
-    <div className="product-card bg-white rounded-lg shadow-md overflow-hidden border border-gray-100 transition-all hover:shadow-lg">
+    <div className="product-card bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200 transition-all hover:shadow-lg">
       <div className="product-card-img-container relative">
         <Link to={`/product/${product.id}`}>
           <img

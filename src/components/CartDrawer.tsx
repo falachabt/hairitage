@@ -23,7 +23,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, setIsOpen }) => {
     >
       <div 
         className={cn(
-          "fixed inset-y-0 right-0 z-50 w-full md:w-[400px] bg-background p-6 shadow-lg transition-transform duration-300 flex flex-col",
+          "fixed inset-y-0 right-0 z-50 w-full md:w-[400px] bg-background p-6 shadow-lg transition-transform duration-300 flex flex-col border-l",
           isOpen ? "translate-x-0" : "translate-x-full"
         )}
       >
