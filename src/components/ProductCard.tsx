@@ -1,19 +1,23 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Heart } from 'lucide-react';
+import { Heart, Plus, Minus, ShoppingBag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/hooks/use-cart';
 import { useFavorites } from '@/hooks/use-favorites';
 import { Product } from '@/types';
+import { Card } from '@/components/ui/card';
 
 interface ProductCardProps {
   product: Product;
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
-  const { addToCart } = useCart();
+  const { addToCart, cart, updateQuantity, removeFromCart } = useCart();
   const { addToFavorites, removeFromFavorites, isFavorite } = useFavorites();
+  
+  const existingCartItem = cart.find(item => item.id === product.id);
+  const isInCart = !!existingCartItem;
   
   const handleToggleFavorite = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -26,8 +30,26 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     }
   };
   
+  const handleAddToCart = () => {
+    addToCart(product);
+  };
+  
+  const handleIncreaseQuantity = () => {
+    if (existingCartItem) {
+      updateQuantity(product.id, existingCartItem.quantity + 1);
+    }
+  };
+  
+  const handleDecreaseQuantity = () => {
+    if (existingCartItem && existingCartItem.quantity > 1) {
+      updateQuantity(product.id, existingCartItem.quantity - 1);
+    } else if (existingCartItem) {
+      removeFromCart(product.id);
+    }
+  };
+  
   return (
-    <div className="product-card bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200 transition-all hover:shadow-lg">
+    <Card className="product-card overflow-hidden">
       <div className="product-card-img-container relative">
         <Link to={`/product/${product.id}`}>
           <img
@@ -54,17 +76,40 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         </Link>
         <div className="flex justify-between items-center mt-2">
           <p className="text-lg font-semibold product-card-price">{product.price.toFixed(2)} €</p>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => addToCart(product)}
-            className="text-xs"
-          >
-            Ajouter
-          </Button>
+          
+          {isInCart ? (
+            <div className="flex items-center space-x-1">
+              <Button 
+                variant="outline" 
+                size="icon" 
+                className="h-8 w-8"
+                onClick={handleDecreaseQuantity}
+              >
+                <Minus size={14} />
+              </Button>
+              <span className="w-8 text-center">{existingCartItem.quantity}</span>
+              <Button 
+                variant="outline" 
+                size="icon" 
+                className="h-8 w-8"
+                onClick={handleIncreaseQuantity}
+              >
+                <Plus size={14} />
+              </Button>
+            </div>
+          ) : (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleAddToCart}
+              className="text-xs"
+            >
+              <ShoppingBag className="h-4 w-4 mr-1" /> Ajouter
+            </Button>
+          )}
         </div>
       </div>
-    </div>
+    </Card>
   );
 };
 

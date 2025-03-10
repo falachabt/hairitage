@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useCart } from '@/hooks/use-cart';
+import { Card } from '@/components/ui/card';
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -49,7 +50,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, setIsOpen }) => {
           <>
             <div className="flex-1 overflow-y-auto space-y-4 pr-2">
               {cart.map((item) => (
-                <div key={item.id} className="flex border-b pb-4">
+                <Card key={item.id} className="flex p-3 shadow-sm">
                   <div className="w-20 h-20 rounded overflow-hidden bg-secondary/20 flex-shrink-0">
                     <img src={item.imageUrl} alt={item.name} className="object-cover w-full h-full" />
                   </div>
@@ -84,11 +85,11 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, setIsOpen }) => {
                   >
                     <X size={15} />
                   </Button>
-                </div>
+                </Card>
               ))}
             </div>
 
-            <div className="border-t pt-4 mt-4">
+            <Card className="mt-4 p-4 shadow-sm border">
               <div className="flex justify-between mb-2">
                 <span>Sous-total</span>
                 <span>{cartTotal.toFixed(2)} €</span>
@@ -116,7 +117,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, setIsOpen }) => {
               >
                 Vider le panier
               </Button>
-            </div>
+            </Card>
           </>
         )}
       </div>
