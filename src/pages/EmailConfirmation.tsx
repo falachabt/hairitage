@@ -1,12 +1,49 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Mail, Check } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 const EmailConfirmation = () => {
+  const [isResending, setIsResending] = useState(false);
+  const { toast } = useToast();
+  
+  const resendVerificationEmail = async () => {
+    setIsResending(true);
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: localStorage.getItem('pendingEmail') || '',
+      });
+      
+      if (error) {
+        toast({
+          title: "Erreur",
+          description: error.message || "Impossible d'envoyer l'email de vérification",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Email envoyé",
+          description: "Un nouvel email de vérification a été envoyé à votre adresse",
+        });
+      }
+    } catch (error) {
+      console.error('Error resending verification email:', error);
+      toast({
+        title: "Erreur",
+        description: "Une erreur s'est produite lors de l'envoi de l'email",
+        variant: "destructive",
+      });
+    } finally {
+      setIsResending(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
@@ -28,9 +65,18 @@ const EmailConfirmation = () => {
             <div className="bg-muted p-4 rounded-md">
               <p className="text-sm">
                 <strong>Vous ne voyez pas l'email?</strong> Vérifiez votre dossier spam 
-                ou essayez de vous reconnecter pour recevoir un nouvel email.
+                ou cliquez ci-dessous pour recevoir un nouvel email.
               </p>
             </div>
+            
+            <Button 
+              variant="outline" 
+              className="w-full mb-3"
+              onClick={resendVerificationEmail}
+              disabled={isResending}
+            >
+              {isResending ? 'Envoi en cours...' : 'Renvoyer le lien de confirmation'}
+            </Button>
             
             <Link to="/login">
               <Button className="w-full">
@@ -46,4 +92,3 @@ const EmailConfirmation = () => {
 };
 
 export default EmailConfirmation;
-

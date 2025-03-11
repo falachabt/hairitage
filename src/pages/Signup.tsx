@@ -43,7 +43,9 @@ const Signup = () => {
     if (error) {
       setError(error.message);
     } else {
-      // Redirect to the email confirmation page instead of showing a message
+      // Store email in localStorage for resend feature
+      localStorage.setItem('pendingEmail', data.email);
+      // Redirect to the email confirmation page
       navigate('/email-confirmation');
     }
   };
