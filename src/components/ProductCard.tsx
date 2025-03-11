@@ -61,7 +61,10 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     }
   };
 
-  const fallbackImage = 'https://images.unsplash.com/photo-1580618672591-eb180b1a973f?q=80&w=1974';
+  // Utiliser l'image principale du produit si disponible, sinon utiliser imageUrl ou une image de secours
+  const productImage = product.product_images?.find(img => img.is_primary)?.image_url || 
+                       product.imageUrl || 
+                       'https://images.unsplash.com/photo-1580618672591-eb180b1a973f?q=80&w=1974';
   
   return (
     <Card className={cn(
@@ -80,7 +83,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
               </div>
             ) : (
               <img
-                src={product.imageUrl || fallbackImage}
+                src={productImage}
                 alt={product.name}
                 className={cn(
                   "w-full h-full object-cover transition-all duration-500",
