@@ -8,7 +8,7 @@ import { useProducts } from '@/hooks/use-products';
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
-import { Filter, SlidersHorizontal, X } from 'lucide-react';
+import { Filter, SlidersHorizontal, X, ChevronLeft } from 'lucide-react';
 
 const Products = () => {
   const { products, isLoading } = useProducts();
@@ -52,8 +52,12 @@ const Products = () => {
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
       <main className="flex-1">
-        <div className="bg-plum-50 py-12">
+        <div className="bg-plum-50 py-12 pt-28">
           <div className="container px-4 md:px-6">
+            <Link to="/" className="inline-flex items-center text-muted-foreground hover:text-foreground mb-4">
+              <ChevronLeft size={16} className="mr-1" />
+              Retour à l'accueil
+            </Link>
             <h1 className="text-3xl md:text-4xl font-bold mb-2">Nos Perruques</h1>
             <p className="text-muted-foreground">Découvrez notre collection de perruques de qualité</p>
           </div>
