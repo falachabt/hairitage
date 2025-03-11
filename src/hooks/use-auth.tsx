@@ -50,6 +50,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           data: {
             full_name: fullName,
           },
+          emailRedirectTo: `${window.location.origin}/email-confirmed`,
         },
       });
       
@@ -86,6 +87,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           description: "Veuillez vérifier votre boîte de réception et confirmer votre email avant de vous connecter",
           variant: "destructive",
         });
+        navigate('/email-confirmation');
       }
       
       return { error };
