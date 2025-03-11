@@ -19,6 +19,7 @@ import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
 import Search from "./pages/Search";
 import UserProfile from "./pages/UserProfile";
+import OrderDetail from "./pages/OrderDetail";
 import NotreHistoire from "./pages/NotrHistoire";
 import EmailConfirmation from "./pages/EmailConfirmation";
 import EmailConfirmed from "./pages/EmailConfirmed";
@@ -46,6 +47,7 @@ const App = () => (
                     <Route path="/login" element={<Login />} />
                     <Route path="/signup" element={<Signup />} />
                     <Route path="/dashboard" element={<Dashboard />} />
+                    <Route path="/order/:orderId" element={<OrderDetail />} />
                     <Route path="/search" element={<Search />} />
                     <Route path="/profile" element={<UserProfile />} />
                     <Route path="/notre-histoire" element={<NotreHistoire />} />

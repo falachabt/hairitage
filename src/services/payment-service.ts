@@ -33,6 +33,9 @@ export interface ProcessPaymentRequest {
   userId?: string;
 }
 
+// Garde en mémoire les sessions déjà traitées pour éviter les doublons
+const processedSessions = new Set<string>();
+
 export async function createPaymentSession(request: PaymentSessionRequest): Promise<PaymentSessionResponse> {
   try {
     console.log("Sending payment session request:", JSON.stringify(request));
@@ -65,6 +68,12 @@ export async function processPaymentSuccess(sessionId: string, userId?: string):
     console.log("Processing payment success for session ID:", sessionId);
     console.log("User ID:", userId || "Anonymous user");
     
+    // Vérifie si cette session a déjà été traitée pour éviter les doublons
+    if (processedSessions.has(sessionId)) {
+      console.log("Session already processed, ignoring duplicate request:", sessionId);
+      return { orderId: "already-processed" };
+    }
+    
     const { data, error } = await supabase.functions.invoke<{ success: boolean; orderId: string }>(
       'process-payment-success',
       {
@@ -81,6 +90,9 @@ export async function processPaymentSuccess(sessionId: string, userId?: string):
       throw new Error('No data returned from payment success processing');
     }
 
+    // Marque cette session comme traitée
+    processedSessions.add(sessionId);
+    
     console.log("Payment processed successfully, order ID:", data.orderId);
     return { orderId: data.orderId };
   } catch (error) {

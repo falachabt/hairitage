@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
@@ -10,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ShoppingBag, Heart, User, Package } from 'lucide-react';
+import { ShoppingBag, Heart, User, Package, ExternalLink } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const Dashboard = () => {
@@ -35,7 +34,6 @@ const Dashboard = () => {
     try {
       setIsLoading(true);
       
-      // Fetch user profile
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('*')
@@ -47,11 +45,9 @@ const Dashboard = () => {
       if (profileData) {
         setProfile(profileData as Profile);
         
-        // Cache profile data for checkout pre-filling
         localStorage.setItem('userProfile', JSON.stringify(profileData));
       }
 
-      // Fetch user orders
       const { data: orderData, error: orderError } = await supabase
         .from('orders')
         .select('*')
@@ -64,7 +60,6 @@ const Dashboard = () => {
         setOrders(orderData as Order[]);
       }
 
-      // Fetch user favorites
       const { data: favoriteData, error: favoriteError } = await supabase
         .from('user_favorites')
         .select('product_id')
@@ -73,7 +68,6 @@ const Dashboard = () => {
       if (favoriteError) throw favoriteError;
       
       if (favoriteData && favoriteData.length > 0) {
-        // Get product details for each favorite
         const productIds = favoriteData.map(fav => fav.product_id);
         
         const { data: productsData, error: productsError } = await supabase
@@ -90,7 +84,6 @@ const Dashboard = () => {
         if (productsError) throw productsError;
         
         if (productsData) {
-          // Transform data to match Product type
           const products: Product[] = productsData.map(product => ({
             id: product.id,
             name: product.name,
@@ -193,7 +186,15 @@ const Dashboard = () => {
               <p className="text-sm text-muted-foreground">
                 Date : {new Date(order.created_at).toLocaleDateString('fr-FR')}
               </p>
-              <p className="font-medium mt-2">Total : {Number(order.total_amount).toFixed(2)} €</p>
+              <div className="flex justify-between items-center mt-2">
+                <p className="font-medium">Total : {Number(order.total_amount).toFixed(2)} €</p>
+                <Button variant="outline" size="sm" asChild>
+                  <Link to={`/order/${order.id}`} className="flex items-center gap-1">
+                    <span>Détails</span>
+                    <ExternalLink size={14} />
+                  </Link>
+                </Button>
+              </div>
             </CardContent>
           </Card>
         ))}
