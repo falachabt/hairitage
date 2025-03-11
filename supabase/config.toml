@@ -35,4 +35,3 @@ verify_jwt = false
 [[functions]]
 name = "process-payment-success"
 verify_jwt = false
-
