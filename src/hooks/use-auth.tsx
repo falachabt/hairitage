@@ -50,7 +50,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           data: {
             full_name: fullName,
           },
-          emailRedirectTo: `https://preview--hairitage.lovable.app/email-confirmed`,
+          emailRedirectTo: `${window.location.origin}/email-confirmed`,
         },
       });
       
@@ -177,15 +177,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .from('profiles')
         .select('*')
         .eq('id', user.id)
-        .maybeSingle();
+        .single();
       
       if (checkError) {
-        console.error('Error checking profile:', checkError);
-        return;
-      }
-      
-      // If profile doesn't exist, create it
-      if (!existingProfile) {
+        // If error is not "No rows returned", then there's an actual error
+        if (!checkError.message.includes('No rows returned')) {
+          console.error('Error checking profile:', checkError);
+          return;
+        }
+        
+        // If error is "No rows returned", then we need to create the profile
         const { error: insertError } = await supabase
           .from('profiles')
           .insert({
