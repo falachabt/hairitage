@@ -13,7 +13,6 @@ const PromotionalProducts = () => {
   // For the demo, let's consider some products as promotional (in a real app this would be a property in the product data)
   const promotionalProducts = products.slice(0, 4).map(product => ({
     ...product,
-    originalPrice: product.price * 1.25, // Simulate that the current price is discounted
     discountPercentage: 20,
   }));
 
@@ -26,7 +25,7 @@ const PromotionalProducts = () => {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {Array.from({ length: 4 }).map((_, index) => (
-            <Skeleton key={index} className="h-[350px] w-full rounded-lg" />
+            <Skeleton key={index} className="h-[400px] w-full rounded-lg" />
           ))}
         </div>
       </div>
@@ -34,7 +33,7 @@ const PromotionalProducts = () => {
   }
 
   return (
-    <section className="py-12 bg-secondary/30">
+    <section className="py-12 bg-secondary/10">
       <div className="container">
         <div className="flex flex-wrap justify-between items-center mb-8">
           <div>
@@ -42,7 +41,7 @@ const PromotionalProducts = () => {
               <Percent className="mr-2 text-primary" size={24} />
               Promotions Spéciales
             </h2>
-            <p className="text-muted-foreground mt-2">
+            <p className="text-muted-foreground mt-2 text-left">
               Profitez de nos offres exclusives pour un temps limité
             </p>
           </div>
@@ -54,18 +53,10 @@ const PromotionalProducts = () => {
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {promotionalProducts.map((product) => (
-            <div key={product.id} className="relative">
-              <div className="absolute top-4 left-4 z-10 bg-primary text-white text-xs font-bold px-2 py-1 rounded-full">
-                -{product.discountPercentage}%
-              </div>
+            <div key={product.id} className="flex flex-col product-promotion-wrapper">
               <ProductCard product={product} />
-              <div className="mt-2 pl-4">
-                <span className="text-sm line-through text-muted-foreground">
-                  {product.originalPrice.toFixed(2)} €
-                </span>
-              </div>
             </div>
           ))}
         </div>
