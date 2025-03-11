@@ -12,6 +12,7 @@ interface FavoritesContextType {
   clearFavorites: () => void;
   isFavorite: (productId: string) => boolean;
   favoritesCount: number;
+  syncFavoritesWithServer: () => Promise<void>;
 }
 
 const FavoritesContext = createContext<FavoritesContextType | undefined>(undefined);
@@ -22,83 +23,131 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const { user } = useAuth();
   
   useEffect(() => {
-    const loadFavorites = async () => {
-      if (!user) {
-        const savedFavorites = localStorage.getItem('favorites');
-        if (savedFavorites) {
-          try {
-            setFavorites(JSON.parse(savedFavorites));
-          } catch (error) {
-            console.error('Failed to parse favorites from localStorage', error);
-          }
-        }
-        return;
-      }
-
-      try {
-        const { data: userFavorites, error: favoritesError } = await supabase
-          .from('user_favorites')
-          .select('product_id')
-          .eq('user_id', user.id);
-
-        if (favoritesError) throw favoritesError;
-
-        if (userFavorites) {
-          // Get product details for each favorite
-          const productIds = userFavorites.map(fav => fav.product_id);
-          const { data: productsData, error: productsError } = await supabase
-            .from('products')
-            .select(`
-              *,
-              product_images (
-                image_url,
-                is_primary
-              )
-            `)
-            .in('id', productIds);
-
-          if (productsError) throw productsError;
-
-          if (productsData) {
-            setFavorites(productsData.map(product => ({
-              id: product.id,
-              name: product.name,
-              price: product.price,
-              imageUrl: product.product_images?.[0]?.image_url || 'https://images.unsplash.com/photo-1605980625600-88d6716a8a21?q=80&w=1974',
-              description: product.description,
-              category: product.category,
-              featured: product.featured,
-              inStock: product.in_stock,
-              rating: product.rating,
-              reviews: product.reviews,
-              colors: product.colors,
-              length: product.length,
-              material: product.material,
-              capSize: product.cap_size,
-            })));
-          }
-        }
-      } catch (error) {
-        console.error('Failed to fetch favorites', error);
-        // Fall back to localStorage
-        const savedFavorites = localStorage.getItem('favorites');
-        if (savedFavorites) {
-          try {
-            setFavorites(JSON.parse(savedFavorites));
-          } catch (error) {
-            console.error('Failed to parse favorites from localStorage', error);
-          }
+    if (user) {
+      // User is logged in, fetch favorites from server
+      fetchFavoritesFromServer();
+    } else {
+      // User is not logged in, load from localStorage
+      const savedFavorites = localStorage.getItem('favorites');
+      if (savedFavorites) {
+        try {
+          setFavorites(JSON.parse(savedFavorites));
+        } catch (error) {
+          console.error('Failed to parse favorites from localStorage', error);
         }
       }
-    };
-    
-    loadFavorites();
+    }
+  }, [user]);
+
+  // Sync favorites with server when user logs in
+  useEffect(() => {
+    if (user) {
+      syncFavoritesWithServer();
+    }
   }, [user]);
   
-  // Save favorites to localStorage
+  // Save favorites to localStorage whenever they change
   useEffect(() => {
     localStorage.setItem('favorites', JSON.stringify(favorites));
   }, [favorites]);
+
+  const fetchFavoritesFromServer = async () => {
+    if (!user) return;
+
+    try {
+      const { data: userFavorites, error: favoritesError } = await supabase
+        .from('user_favorites')
+        .select('product_id')
+        .eq('user_id', user.id);
+
+      if (favoritesError) throw favoritesError;
+
+      if (userFavorites && userFavorites.length > 0) {
+        // Get product details for each favorite
+        const productIds = userFavorites.map(fav => fav.product_id);
+        const { data: productsData, error: productsError } = await supabase
+          .from('products')
+          .select(`
+            *,
+            product_images (
+              image_url,
+              is_primary
+            )
+          `)
+          .in('id', productIds);
+
+        if (productsError) throw productsError;
+
+        if (productsData) {
+          setFavorites(productsData.map(product => ({
+            id: product.id,
+            name: product.name,
+            price: product.price,
+            imageUrl: product.product_images?.[0]?.image_url || 'https://images.unsplash.com/photo-1605980625600-88d6716a8a21?q=80&w=1974',
+            description: product.description,
+            category: product.category,
+            featured: product.featured,
+            inStock: product.in_stock,
+            rating: product.rating,
+            reviews: product.reviews,
+            colors: product.colors,
+            length: product.length,
+            material: product.material,
+            capSize: product.cap_size,
+          })));
+        }
+      } else {
+        // No favorites found on server, use local favorites
+        setFavorites([]);
+      }
+    } catch (error) {
+      console.error('Failed to fetch favorites from server', error);
+    }
+  };
+
+  // Function to sync localStorage favorites with server
+  const syncFavoritesWithServer = async () => {
+    if (!user) return;
+    
+    try {
+      // Get current favorites from localStorage
+      const localFavorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+      
+      // For each local favorite, check if it exists on the server
+      for (const favorite of localFavorites) {
+        const { data, error } = await supabase
+          .from('user_favorites')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('product_id', favorite.id)
+          .maybeSingle();
+          
+        if (error) {
+          console.error('Error checking favorite:', error);
+          continue;
+        }
+        
+        // If favorite doesn't exist on server, add it
+        if (!data) {
+          const { error: insertError } = await supabase
+            .from('user_favorites')
+            .insert({
+              user_id: user.id,
+              product_id: favorite.id
+            });
+            
+          if (insertError) {
+            console.error('Error inserting favorite:', insertError);
+          }
+        }
+      }
+      
+      // Refresh favorites from server
+      await fetchFavoritesFromServer();
+    } catch (error) {
+      console.error('Error syncing favorites with server:', error);
+    }
+  };
   
   const addToFavorites = async (product: Product) => {
     if (!isFavorite(product.id)) {
@@ -193,7 +242,8 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     removeFromFavorites,
     clearFavorites,
     isFavorite,
-    favoritesCount
+    favoritesCount,
+    syncFavoritesWithServer
   };
   
   return <FavoritesContext.Provider value={value}>{children}</FavoritesContext.Provider>;

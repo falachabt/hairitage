@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
@@ -45,6 +46,9 @@ const Dashboard = () => {
       
       if (profileData) {
         setProfile(profileData as Profile);
+        
+        // Cache profile data for checkout pre-filling
+        localStorage.setItem('userProfile', JSON.stringify(profileData));
       }
 
       // Fetch user orders
@@ -357,4 +361,3 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
-

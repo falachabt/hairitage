@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { CartItem, Product } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
+import { supabase } from '@/integrations/supabase/client';
 
 interface CartContextType {
   cart: CartItem[];
@@ -12,6 +13,7 @@ interface CartContextType {
   clearCart: () => void;
   cartCount: number;
   cartTotal: number;
+  syncCartWithServer: () => Promise<void>;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -32,11 +34,38 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     }
   }, []);
+
+  // Sync cart with server when user logs in
+  useEffect(() => {
+    if (user) {
+      syncCartWithServer();
+    }
+  }, [user]);
   
   // Save cart to localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem('cart', JSON.stringify(cart));
   }, [cart]);
+
+  // Function to sync cart with server
+  const syncCartWithServer = async () => {
+    if (!user) return;
+    
+    try {
+      // In a real implementation, you would:
+      // 1. Fetch the user's cart from the server
+      // 2. Merge it with the local cart
+      // 3. Update the server with the merged cart
+      
+      // This is a simplified version that just logs the intent
+      console.log('Syncing cart with server for user', user.id);
+      
+      // You would implement this functionality based on your database schema
+      // For example, you might have a 'carts' table with user_id and items JSON
+    } catch (error) {
+      console.error('Error syncing cart with server:', error);
+    }
+  };
   
   const addToCart = (product: Product, quantity = 1) => {
     setCart(prevCart => {
@@ -108,7 +137,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     updateQuantity,
     clearCart,
     cartCount,
-    cartTotal
+    cartTotal,
+    syncCartWithServer
   };
   
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

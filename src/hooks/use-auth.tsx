@@ -59,6 +59,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           title: "Compte créé avec succès",
           description: "Veuillez vérifier votre email pour confirmer votre compte avant de vous connecter",
         });
+        
+        // Store email in localStorage for resending verification if needed
+        localStorage.setItem('pendingVerificationEmail', email);
       }
 
       
@@ -81,6 +84,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           title: "Connexion réussie",
           description: "Vous êtes maintenant connecté",
         });
+        
+        // Remove pending verification email from localStorage if it exists
+        localStorage.removeItem('pendingVerificationEmail');
+        
+        // Sync cart and favorites from localStorage to database
+        await syncUserData();
+        
         navigate('/');
       } else if (error.message.includes('Email not confirmed')) {
         toast({
@@ -88,6 +98,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           description: "Veuillez vérifier votre boîte de réception et confirmer votre email avant de vous connecter",
           variant: "destructive",
         });
+        
+        // Store email in localStorage for resending verification if needed
+        localStorage.setItem('pendingVerificationEmail', email);
+        
         navigate('/email-confirmation');
       }
       
@@ -95,6 +109,59 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (error) {
       console.error('Error during signin:', error);
       return { error: error as AuthError };
+    }
+  };
+
+  const syncUserData = async () => {
+    if (!user) return;
+    
+    try {
+      // Sync cart items
+      const localCart = localStorage.getItem('cart');
+      if (localCart) {
+        const cartItems = JSON.parse(localCart);
+        
+        // Here you would implement the logic to merge local cart with server cart
+        // This would require modifications to the cart provider and database schema
+        console.log('Syncing cart items for user', user.id, cartItems);
+      }
+      
+      // Sync favorites
+      const localFavorites = localStorage.getItem('favorites');
+      if (localFavorites) {
+        const favorites = JSON.parse(localFavorites);
+        
+        // For each favorite, check if it exists in the database, if not add it
+        for (const favorite of favorites) {
+          const { data, error } = await supabase
+            .from('user_favorites')
+            .select('*')
+            .eq('user_id', user.id)
+            .eq('product_id', favorite.id)
+            .maybeSingle();
+            
+          if (error) {
+            console.error('Error checking favorite:', error);
+            continue;
+          }
+          
+          if (!data) {
+            // Favorite doesn't exist in database, add it
+            const { error: insertError } = await supabase
+              .from('user_favorites')
+              .insert({
+                user_id: user.id,
+                product_id: favorite.id
+              });
+              
+            if (insertError) {
+              console.error('Error inserting favorite:', insertError);
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error syncing user data:', error);
     }
   };
 
