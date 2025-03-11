@@ -20,6 +20,8 @@ import Dashboard from "./pages/Dashboard";
 import Search from "./pages/Search";
 import UserProfile from "./pages/UserProfile";
 import NotreHistoire from "./pages/NotrHistoire";
+import EmailConfirmation from "./pages/EmailConfirmation";
+import EmailConfirmed from "./pages/EmailConfirmed";
 
 const queryClient = new QueryClient();
 
@@ -47,6 +49,8 @@ const App = () => (
                     <Route path="/search" element={<Search />} />
                     <Route path="/profile" element={<UserProfile />} />
                     <Route path="/notre-histoire" element={<NotreHistoire />} />
+                    <Route path="/email-confirmation" element={<EmailConfirmation />} />
+                    <Route path="/email-confirmed" element={<EmailConfirmed />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </div>

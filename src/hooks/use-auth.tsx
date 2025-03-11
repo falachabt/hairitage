@@ -50,13 +50,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           data: {
             full_name: fullName,
           },
+          emailRedirectTo: `${window.location.origin}/email-confirmed`,
         },
       });
       
       if (!error) {
         toast({
           title: "Compte créé avec succès",
-          description: "Veuillez vérifier votre email pour confirmer votre compte",
+          description: "Veuillez vérifier votre email pour confirmer votre compte avant de vous connecter",
         });
       }
 
@@ -81,6 +82,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           description: "Vous êtes maintenant connecté",
         });
         navigate('/');
+      } else if (error.message.includes('Email not confirmed')) {
+        toast({
+          title: "Email non confirmé",
+          description: "Veuillez vérifier votre boîte de réception et confirmer votre email avant de vous connecter",
+          variant: "destructive",
+        });
+        navigate('/email-confirmation');
       }
       
       return { error };

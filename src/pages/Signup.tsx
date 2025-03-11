@@ -43,7 +43,8 @@ const Signup = () => {
     if (error) {
       setError(error.message);
     } else {
-      navigate('/login');
+      // Redirect to the email confirmation page instead of showing a message
+      navigate('/email-confirmation');
     }
   };
   
