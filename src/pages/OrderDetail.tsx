@@ -9,10 +9,11 @@ import { Order } from '@/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Download, ChevronLeft } from 'lucide-react';
+import { Download, ChevronLeft, Star } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { generateOrderPDF } from '@/utils/pdf-utils';
+import { toast } from '@/hooks/use-toast';
 
 const OrderDetail = () => {
   const { orderId } = useParams();
@@ -22,6 +23,7 @@ const OrderDetail = () => {
   const [orderItems, setOrderItems] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [ratings, setRatings] = useState<Record<string, number>>({});
 
   useEffect(() => {
     if (!loading && !user) {
@@ -54,7 +56,7 @@ const OrderDetail = () => {
 
       setOrder(orderData as Order);
 
-      // Fetch order items
+      // Fetch order items with product details
       const { data: itemsData, error: itemsError } = await supabase
         .from('order_items')
         .select(`
@@ -72,9 +74,21 @@ const OrderDetail = () => {
         .eq('order_id', orderId);
 
       if (itemsError) {
-        throw itemsError;
+        console.error('Error fetching order items:', itemsError);
+        // Continue anyway to show at least the order without items
       }
 
+      // Initialize ratings for each item
+      const initialRatings: Record<string, number> = {};
+      if (itemsData) {
+        itemsData.forEach(item => {
+          if (item.products?.id) {
+            initialRatings[item.products.id] = 0;
+          }
+        });
+      }
+      
+      setRatings(initialRatings);
       setOrderItems(itemsData || []);
     } catch (error) {
       console.error('Error fetching order details:', error);
@@ -85,9 +99,78 @@ const OrderDetail = () => {
   };
 
   const handleDownloadInvoice = () => {
-    if (order && orderItems.length > 0) {
-      generateOrderPDF(order, orderItems);
+    if (order && orderItems) {
+      const success = generateOrderPDF(order, orderItems);
+      if (!success) {
+        toast({
+          title: "Erreur",
+          description: "Impossible de générer la facture PDF",
+          variant: "destructive"
+        });
+      }
     }
+  };
+
+  const submitRating = async (productId: string, rating: number) => {
+    try {
+      if (!user) return;
+      
+      // Mettre à jour le rating du produit dans la base de données
+      const { data: product, error: fetchError } = await supabase
+        .from('products')
+        .select('rating, reviews')
+        .eq('id', productId)
+        .single();
+        
+      if (fetchError) {
+        throw fetchError;
+      }
+      
+      const currentRating = product?.rating || 0;
+      const currentReviews = product?.reviews || 0;
+      
+      // Calculer la nouvelle moyenne
+      const newReviews = currentReviews + 1;
+      const newRating = ((currentRating * currentReviews) + rating) / newReviews;
+      
+      const { error: updateError } = await supabase
+        .from('products')
+        .update({
+          rating: newRating,
+          reviews: newReviews
+        })
+        .eq('id', productId);
+        
+      if (updateError) {
+        throw updateError;
+      }
+      
+      toast({
+        title: "Merci pour votre avis !",
+        description: "Votre évaluation a été enregistrée avec succès.",
+      });
+      
+      // Réinitialiser le rating pour ce produit
+      setRatings(prev => ({
+        ...prev,
+        [productId]: 0
+      }));
+      
+    } catch (error) {
+      console.error('Error submitting rating:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible d'enregistrer votre évaluation.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleRatingChange = (productId: string, value: number) => {
+    setRatings(prev => ({
+      ...prev,
+      [productId]: value
+    }));
   };
 
   if (loading || isLoading) {
@@ -203,8 +286,8 @@ const OrderDetail = () => {
                   {orderItems.length > 0 ? (
                     <div className="space-y-4">
                       {orderItems.map((item) => (
-                        <div key={item.id} className="flex border-b pb-4">
-                          <div className="h-20 w-20 rounded-md overflow-hidden bg-secondary/20">
+                        <div key={item.id} className="flex flex-col sm:flex-row border-b pb-4">
+                          <div className="h-20 w-20 rounded-md overflow-hidden bg-secondary/20 flex-shrink-0">
                             <img 
                               src={item.products?.product_images && item.products.product_images.length > 0
                                 ? item.products.product_images.find((img: any) => img.is_primary)?.image_url 
@@ -215,13 +298,49 @@ const OrderDetail = () => {
                               className="h-full w-full object-cover"
                             />
                           </div>
-                          <div className="ml-4 flex-1">
+                          <div className="ml-0 sm:ml-4 flex-1 mt-2 sm:mt-0">
                             <h4 className="font-medium">{item.products?.name || 'Produit'}</h4>
                             <p className="text-sm text-muted-foreground">{item.products?.description?.substring(0, 100) || 'Description du produit'}</p>
                             <div className="flex justify-between mt-2">
                               <span>Quantité: {item.quantity}</span>
                               <span className="font-medium">{Number(item.unit_price).toFixed(2)} € x {item.quantity} = {Number(item.total_price).toFixed(2)} €</span>
                             </div>
+                            
+                            {/* Section d'évaluation */}
+                            {item.products?.id && (
+                              <div className="mt-3 border-t pt-3">
+                                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+                                  <span className="text-sm">Évaluer ce produit:</span>
+                                  <div className="flex">
+                                    {[1, 2, 3, 4, 5].map((star) => (
+                                      <button
+                                        key={star}
+                                        type="button"
+                                        onClick={() => handleRatingChange(item.products.id, star)}
+                                        className="focus:outline-none"
+                                      >
+                                        <Star
+                                          className={`h-5 w-5 ${
+                                            star <= (ratings[item.products.id] || 0)
+                                              ? 'text-yellow-400 fill-yellow-400'
+                                              : 'text-gray-300'
+                                          }`}
+                                        />
+                                      </button>
+                                    ))}
+                                  </div>
+                                  
+                                  <Button 
+                                    size="sm" 
+                                    variant="outline"
+                                    onClick={() => submitRating(item.products.id, ratings[item.products.id] || 0)}
+                                    disabled={!ratings[item.products.id]}
+                                  >
+                                    Soumettre
+                                  </Button>
+                                </div>
+                              </div>
+                            )}
                           </div>
                         </div>
                       ))}

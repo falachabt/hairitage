@@ -33,16 +33,16 @@ const handler = async (req: Request): Promise<Response> => {
     console.log("Processing payment success for session:", sessionId);
 
     // Retrieve the session from Stripe
-    // Removed shipping_details from expand as it's not supported
+    // IMPORTANT: Expand line_items and customer_details but NOT shipping_details as it's not supported
     const session = await stripe.checkout.sessions.retrieve(sessionId, {
-      expand: ["line_items", "customer_details"],
+      expand: ["line_items", "line_items.data.price.product", "customer_details"],
     });
 
     if (session.payment_status !== "paid") {
       throw new Error("Payment not completed");
     }
 
-    // Extract shipping information directly from session
+    // Extract shipping information directly from session.shipping
     const shipping = session.shipping?.address;
     const customerEmail = session.customer_details?.email;
     const customerName = session.customer_details?.name;
@@ -75,13 +75,28 @@ const handler = async (req: Request): Promise<Response> => {
     if (session.line_items && session.line_items.data.length > 0) {
       const orderItems = session.line_items.data
         .filter(item => item.description !== "Frais de livraison") // Skip shipping
-        .map(item => ({
-          order_id: order.id,
-          product_id: item.price?.product, // This might need adjustment depending on your data model
-          quantity: item.quantity || 1,
-          unit_price: (item.price?.unit_amount || 0) / 100,
-          total_price: ((item.price?.unit_amount || 0) * (item.quantity || 1)) / 100,
-        }));
+        .map(item => {
+          // Récupérer l'ID du produit depuis le prix
+          let productId = null;
+          if (item.price && item.price.product) {
+            // Si item.price.product est déjà un objet étendu avec id
+            const product = typeof item.price.product === 'string' 
+              ? item.price.product 
+              : (item.price.product as any).id;
+              
+            productId = product;
+          }
+          
+          return {
+            order_id: order.id,
+            product_id: productId,
+            quantity: item.quantity || 1,
+            unit_price: (item.price?.unit_amount || 0) / 100,
+            total_price: ((item.price?.unit_amount || 0) * (item.quantity || 1)) / 100,
+          };
+        });
+
+      console.log("Inserting order items:", JSON.stringify(orderItems));
 
       const { error: itemsError } = await supabase
         .from("order_items")
