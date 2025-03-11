@@ -1,19 +1,20 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const categories = [
   {
     id: 'short',
     name: 'Perruques Courtes',
     description: 'Style élégant et pratique',
-    image: 'https://images.unsplash.com/photo-1595591569984-d4d660144a03?q=80&w=1974'
+    image: 'https://images.unsplash.com/photo-1595272568891-123402d0fb3b?q=80&w=1974'
   },
   {
     id: 'medium',
     name: 'Perruques Moyennes',
     description: 'L\'équilibre parfait',
-    image: 'https://images.unsplash.com/photo-1605980625600-88d6716a8a21?q=80&w=1974'
+    image: 'https://images.unsplash.com/photo-1580618672591-eb180b1a973f?q=80&w=1974'
   },
   {
     id: 'long',
@@ -29,6 +30,46 @@ const categories = [
   }
 ];
 
+// Images de secours pour chaque catégorie
+const fallbackImages = {
+  'short': 'https://images.unsplash.com/photo-1649972904349-6e44c42644a7?q=80&w=1974',
+  'medium': 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?q=80&w=1974',
+  'long': 'https://images.unsplash.com/photo-1595272568891-123402d0fb3b?q=80&w=1974',
+  'lace-front': 'https://images.unsplash.com/photo-1580618672591-eb180b1a973f?q=80&w=1974',
+  'default': 'https://images.unsplash.com/photo-1613967193490-1d17b930c1a1?q=80&w=1974'
+};
+
+const CategoryImage = ({ category, image }: { category: string, image: string }) => {
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
+  
+  const handleImageLoad = () => {
+    setIsLoading(false);
+  };
+  
+  const handleImageError = () => {
+    setIsLoading(false);
+    setHasError(true);
+  };
+  
+  // Sélectionner l'image de secours spécifique à la catégorie ou l'image par défaut
+  const fallbackImage = fallbackImages[category as keyof typeof fallbackImages] || fallbackImages.default;
+  
+  return (
+    <div className="relative aspect-[4/5] w-full overflow-hidden">
+      {isLoading && <Skeleton className="absolute inset-0 w-full h-full" />}
+      
+      <img 
+        src={hasError ? fallbackImage : image} 
+        alt={`Catégorie de perruques`}
+        className={`w-full h-full object-cover transition-transform group-hover:scale-105 ${isLoading ? 'opacity-0' : 'opacity-100'}`}
+        onLoad={handleImageLoad}
+        onError={handleImageError}
+      />
+    </div>
+  );
+};
+
 const Categories = () => {
   return (
     <section className="py-16 bg-secondary/30">
@@ -42,10 +83,9 @@ const Categories = () => {
               className="group block overflow-hidden rounded-lg bg-white shadow-md transition-all hover:-translate-y-1 hover:shadow-lg"
             >
               <div className="relative aspect-[4/5] overflow-hidden">
-                <img 
-                  src={category.image} 
-                  alt={category.name}
-                  className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                <CategoryImage 
+                  category={category.id} 
+                  image={category.image} 
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent">
                   <div className="absolute bottom-0 p-4 text-white">
