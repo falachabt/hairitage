@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Heart, Plus, Minus, ShoppingBag, ImageOff } from 'lucide-react';
@@ -6,7 +7,7 @@ import { useCart } from '@/hooks/use-cart';
 import { useFavorites } from '@/hooks/use-favorites';
 import { Product } from '@/types';
 import { Card } from '@/components/ui/card';
-import { cn } from '@/utils';
+import { cn } from '@/lib/utils';
 
 interface ProductCardProps {
   product: Product;
