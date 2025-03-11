@@ -14,7 +14,9 @@ import {
   CircleDollarSign,
   CheckCircle,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  LogIn,
+  User
 } from 'lucide-react';
 import { useCart } from '@/hooks/use-cart';
 import { useToast } from '@/hooks/use-toast';
@@ -22,13 +24,14 @@ import { useAuth } from '@/hooks/use-auth';
 import { createPaymentSession, processPaymentSuccess } from '@/services/payment-service';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import AddressAutocomplete from '@/components/AddressAutocomplete';
+import { supabase } from '@/integrations/supabase/client';
 
 const Checkout = () => {
   const { cart, cartTotal, clearCart } = useCart();
   const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const queryParams = new URLSearchParams(location.search);
   const sessionId = queryParams.get('session_id');
   const paymentStatus = queryParams.get('payment_status');
@@ -39,6 +42,8 @@ const Checkout = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const [formErrors, setFormErrors] = useState<Record<string, boolean>>({});
+  const [showAuthPrompt, setShowAuthPrompt] = useState(false);
+  const [saveAddressToProfile, setSaveAddressToProfile] = useState(true);
   const [customerInfo, setCustomerInfo] = useState({
     firstName: '',
     lastName: '',
@@ -47,6 +52,7 @@ const Checkout = () => {
     address: '',
     city: '',
     zipCode: '',
+    country: 'FR',
   });
   
   const deliveryPrice = deliveryMethod === 'standard' ? 5.95 : 12.95;
@@ -54,6 +60,47 @@ const Checkout = () => {
   const finalDeliveryPrice = isFreeDelivery ? 0 : deliveryPrice;
   const orderTotal = cartTotal + finalDeliveryPrice;
 
+  // Load profile data if user is logged in
+  useEffect(() => {
+    const loadProfileData = async () => {
+      if (user) {
+        try {
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', user.id)
+            .single();
+
+          if (error) throw error;
+
+          if (data) {
+            // Update customer info with profile data
+            setCustomerInfo(prev => ({
+              ...prev,
+              firstName: data.full_name?.split(' ')[0] || prev.firstName,
+              lastName: data.full_name?.split(' ').slice(1).join(' ') || prev.lastName,
+              email: user.email || prev.email,
+              phone: data.phone || prev.phone,
+              address: data.address || prev.address,
+              city: data.city || prev.city,
+              zipCode: data.postal_code || prev.zipCode,
+              country: data.country || 'FR',
+            }));
+          }
+        } catch (error) {
+          console.error('Error loading profile data:', error);
+        }
+      } else if (!loading) {
+        // Show auth prompt if user is not logged in and checkout has started
+        if (cart.length > 0) {
+          setShowAuthPrompt(true);
+        }
+      }
+    };
+
+    loadProfileData();
+  }, [user, loading, cart.length]);
+  
   // Handle form input changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
@@ -83,6 +130,7 @@ const Checkout = () => {
       address: addressData.fullAddress,
       city: addressData.city || prev.city,
       zipCode: addressData.postalCode || prev.zipCode,
+      country: addressData.country || prev.country,
     }));
     
     // Clear errors for these fields
@@ -107,6 +155,26 @@ const Checkout = () => {
             title: "Paiement confirmé",
             description: "Votre commande a été traitée avec succès.",
           });
+          
+          // Save address to profile if user is logged in and opted to save
+          if (user && saveAddressToProfile) {
+            try {
+              await supabase
+                .from('profiles')
+                .update({
+                  full_name: `${customerInfo.firstName} ${customerInfo.lastName}`,
+                  phone: customerInfo.phone,
+                  address: customerInfo.address,
+                  city: customerInfo.city,
+                  postal_code: customerInfo.zipCode,
+                  country: customerInfo.country,
+                  updated_at: new Date().toISOString(),
+                })
+                .eq('id', user.id);
+            } catch (error) {
+              console.error('Error saving address to profile:', error);
+            }
+          }
         } catch (error) {
           console.error('Error processing payment:', error);
           toast({
@@ -123,7 +191,7 @@ const Checkout = () => {
     if (sessionId && paymentStatus === 'success') {
       handlePaymentSuccess();
     }
-  }, [sessionId, paymentStatus, user, clearCart, toast]);
+  }, [sessionId, paymentStatus, user, clearCart, toast, customerInfo, saveAddressToProfile]);
   
   const validateForm = () => {
     const requiredFields = ['firstName', 'lastName', 'email', 'address', 'city', 'zipCode'];
@@ -186,7 +254,7 @@ const Checkout = () => {
           address: customerInfo.address,
           city: customerInfo.city,
           postalCode: customerInfo.zipCode,
-          country: 'FR', // Default to France
+          country: customerInfo.country,
         },
         successUrl: `${window.location.origin}/checkout?payment_status=success&session_id={CHECKOUT_SESSION_ID}`,
         cancelUrl: `${window.location.origin}/checkout`,
@@ -271,6 +339,35 @@ const Checkout = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {step === 'delivery' && (
               <div className="md:col-span-2 space-y-8">
+                {showAuthPrompt && !user && (
+                  <Alert className="mb-6 bg-primary/10 border-primary">
+                    <User className="h-4 w-4 text-primary" />
+                    <AlertTitle>Créez un compte pour une expérience simplifiée</AlertTitle>
+                    <AlertDescription className="mt-2">
+                      <p className="mb-3">En créant un compte, vous pourrez :</p>
+                      <ul className="list-disc list-inside mb-3 space-y-1">
+                        <li>Sauvegarder vos informations de livraison</li>
+                        <li>Suivre vos commandes facilement</li>
+                        <li>Accéder à votre historique d'achats</li>
+                      </ul>
+                      <div className="flex flex-wrap gap-3 mt-3">
+                        <Button asChild variant="outline" size="sm">
+                          <Link to="/login">
+                            <LogIn className="mr-2 h-4 w-4" />
+                            Se connecter
+                          </Link>
+                        </Button>
+                        <Button asChild size="sm">
+                          <Link to="/signup">
+                            <User className="mr-2 h-4 w-4" />
+                            Créer un compte
+                          </Link>
+                        </Button>
+                      </div>
+                    </AlertDescription>
+                  </Alert>
+                )}
+                
                 <div className="bg-white p-6 rounded-lg border">
                   <h2 className="text-lg font-medium mb-4">Informations personnelles</h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -387,6 +484,21 @@ const Checkout = () => {
                         )}
                       </div>
                     </div>
+                    
+                    {user && (
+                      <div className="flex items-center space-x-2 mt-4 pt-4 border-t">
+                        <input
+                          type="checkbox" 
+                          id="saveAddress"
+                          checked={saveAddressToProfile}
+                          onChange={() => setSaveAddressToProfile(!saveAddressToProfile)}
+                          className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                        />
+                        <Label htmlFor="saveAddress" className="text-sm cursor-pointer">
+                          Sauvegarder cette adresse pour mes futures commandes
+                        </Label>
+                      </div>
+                    )}
                   </div>
                 </div>
                 
