@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Input } from '@/components/ui/input';
@@ -12,37 +12,140 @@ import {
   CreditCard,
   Truck,
   CircleDollarSign,
-  CheckCircle
+  CheckCircle,
+  Loader2
 } from 'lucide-react';
 import { useCart } from '@/hooks/use-cart';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/use-auth';
+import { createPaymentSession, processPaymentSuccess } from '@/services/payment-service';
 
 const Checkout = () => {
   const { cart, cartTotal, clearCart } = useCart();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
+  const { user } = useAuth();
+  const queryParams = new URLSearchParams(location.search);
+  const sessionId = queryParams.get('session_id');
+  const paymentStatus = queryParams.get('payment_status');
 
   const [step, setStep] = useState<'delivery' | 'payment' | 'confirmation'>('delivery');
   const [paymentMethod, setPaymentMethod] = useState<'card' | 'paypal'>('card');
   const [deliveryMethod, setDeliveryMethod] = useState<'standard' | 'express'>('standard');
+  const [isLoading, setIsLoading] = useState(false);
+  const [customerInfo, setCustomerInfo] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    address: '',
+    city: '',
+    zipCode: '',
+  });
   
   const deliveryPrice = deliveryMethod === 'standard' ? 5.95 : 12.95;
   const isFreeDelivery = cartTotal > 100;
   const finalDeliveryPrice = isFreeDelivery ? 0 : deliveryPrice;
   const orderTotal = cartTotal + finalDeliveryPrice;
+
+  // Handle form input changes
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { id, value } = e.target;
+    setCustomerInfo((prev) => ({
+      ...prev,
+      [id]: value,
+    }));
+  };
+  
+  // Process successful payment
+  useEffect(() => {
+    const handlePaymentSuccess = async () => {
+      if (sessionId && paymentStatus === 'success') {
+        setIsLoading(true);
+        try {
+          await processPaymentSuccess(sessionId, user?.id);
+          clearCart();
+          setStep('confirmation');
+          toast({
+            title: "Paiement confirmé",
+            description: "Votre commande a été traitée avec succès.",
+          });
+        } catch (error) {
+          console.error('Error processing payment:', error);
+          toast({
+            title: "Erreur de paiement",
+            description: "Une erreur est survenue lors du traitement du paiement.",
+            variant: "destructive",
+          });
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    if (sessionId && paymentStatus === 'success') {
+      handlePaymentSuccess();
+    }
+  }, [sessionId, paymentStatus, user, clearCart, toast]);
   
   const handleNext = () => {
     if (step === 'delivery') {
+      // Validate delivery form
+      if (!customerInfo.firstName || !customerInfo.lastName || !customerInfo.email || 
+          !customerInfo.address || !customerInfo.city || !customerInfo.zipCode) {
+        toast({
+          title: "Informations incomplètes",
+          description: "Veuillez remplir tous les champs obligatoires.",
+          variant: "destructive",
+        });
+        return;
+      }
       setStep('payment');
     } else if (step === 'payment') {
-      // In a real app, you would process payment here
+      handlePayment();
+    }
+  };
+
+  const handlePayment = async () => {
+    setIsLoading(true);
+    try {
+      // Prepare payment session request
+      const paymentRequest = {
+        cartItems: cart.map(item => ({
+          id: item.id,
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+          imageUrl: item.imageUrl,
+        })),
+        customerEmail: customerInfo.email,
+        shippingInfo: {
+          address: customerInfo.address,
+          city: customerInfo.city,
+          postalCode: customerInfo.zipCode,
+          country: 'FR', // Default to France
+        },
+        successUrl: `${window.location.origin}/checkout?payment_status=success&session_id={CHECKOUT_SESSION_ID}`,
+        cancelUrl: `${window.location.origin}/checkout`,
+        orderTotal,
+        deliveryPrice: finalDeliveryPrice,
+      };
+
+      // Create Stripe payment session
+      const { checkoutUrl } = await createPaymentSession(paymentRequest);
+      
+      // Redirect to Stripe Checkout
+      window.location.href = checkoutUrl;
+    } catch (error) {
+      console.error('Payment error:', error);
       toast({
-        title: "Commande confirmée",
-        description: "Votre commande a été traitée avec succès.",
+        title: "Erreur de paiement",
+        description: "Une erreur est survenue lors de la préparation du paiement.",
+        variant: "destructive",
       });
-      setStep('confirmation');
-      clearCart();
-      // In a real app, this would redirect to a confirmation page with order details
+    } finally {
+      setIsLoading(false);
     }
   };
   
@@ -110,19 +213,44 @@ const Checkout = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="firstName">Prénom</Label>
-                      <Input id="firstName" placeholder="Votre prénom" className="mt-1" />
+                      <Input 
+                        id="firstName" 
+                        placeholder="Votre prénom" 
+                        className="mt-1" 
+                        value={customerInfo.firstName}
+                        onChange={handleInputChange}
+                      />
                     </div>
                     <div>
                       <Label htmlFor="lastName">Nom</Label>
-                      <Input id="lastName" placeholder="Votre nom" className="mt-1" />
+                      <Input 
+                        id="lastName" 
+                        placeholder="Votre nom" 
+                        className="mt-1" 
+                        value={customerInfo.lastName}
+                        onChange={handleInputChange}
+                      />
                     </div>
                     <div>
                       <Label htmlFor="email">Email</Label>
-                      <Input id="email" type="email" placeholder="votre@email.com" className="mt-1" />
+                      <Input 
+                        id="email" 
+                        type="email" 
+                        placeholder="votre@email.com" 
+                        className="mt-1" 
+                        value={customerInfo.email}
+                        onChange={handleInputChange}
+                      />
                     </div>
                     <div>
                       <Label htmlFor="phone">Téléphone</Label>
-                      <Input id="phone" placeholder="0612345678" className="mt-1" />
+                      <Input 
+                        id="phone" 
+                        placeholder="0612345678" 
+                        className="mt-1" 
+                        value={customerInfo.phone}
+                        onChange={handleInputChange}
+                      />
                     </div>
                   </div>
                 </div>
@@ -132,16 +260,34 @@ const Checkout = () => {
                   <div className="space-y-4">
                     <div>
                       <Label htmlFor="address">Adresse</Label>
-                      <Input id="address" placeholder="Numéro et nom de rue" className="mt-1" />
+                      <Input 
+                        id="address" 
+                        placeholder="Numéro et nom de rue" 
+                        className="mt-1" 
+                        value={customerInfo.address}
+                        onChange={handleInputChange}
+                      />
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <Label htmlFor="city">Ville</Label>
-                        <Input id="city" placeholder="Votre ville" className="mt-1" />
+                        <Input 
+                          id="city" 
+                          placeholder="Votre ville" 
+                          className="mt-1" 
+                          value={customerInfo.city}
+                          onChange={handleInputChange}
+                        />
                       </div>
                       <div>
                         <Label htmlFor="zipCode">Code Postal</Label>
-                        <Input id="zipCode" placeholder="75001" className="mt-1" />
+                        <Input 
+                          id="zipCode" 
+                          placeholder="75001" 
+                          className="mt-1" 
+                          value={customerInfo.zipCode}
+                          onChange={handleInputChange}
+                        />
                       </div>
                     </div>
                   </div>
@@ -197,54 +343,68 @@ const Checkout = () => {
                           <CreditCard size={18} className="mr-2 text-muted-foreground" />
                           <span>Carte bancaire</span>
                         </Label>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Paiement sécurisé via Stripe
+                        </p>
                       </div>
                     </div>
                     
-                    <div className="flex items-start space-x-3 p-4 border rounded cursor-pointer hover:bg-muted/50" onClick={() => setPaymentMethod('paypal')}>
-                      <RadioGroupItem value="paypal" id="paypal" className="mt-1" />
+                    <div className="flex items-start space-x-3 p-4 border rounded cursor-pointer hover:bg-muted/50 opacity-50" onClick={() => toast({
+                      title: "Indisponible",
+                      description: "Cette méthode de paiement n'est pas encore disponible.",
+                    })}>
+                      <RadioGroupItem value="paypal" id="paypal" className="mt-1" disabled />
                       <div className="flex-1">
                         <Label htmlFor="paypal" className="flex items-center cursor-pointer">
                           <CircleDollarSign size={18} className="mr-2 text-muted-foreground" />
-                          <span>PayPal</span>
+                          <span>PayPal (bientôt disponible)</span>
                         </Label>
                       </div>
                     </div>
                   </RadioGroup>
                 </div>
                 
-                {paymentMethod === 'card' && (
-                  <div className="bg-white p-6 rounded-lg border">
-                    <h2 className="text-lg font-medium mb-4">Informations de paiement</h2>
-                    <div className="space-y-4">
-                      <div>
-                        <Label htmlFor="cardName">Nom sur la carte</Label>
-                        <Input id="cardName" placeholder="Nom du titulaire" className="mt-1" />
-                      </div>
-                      <div>
-                        <Label htmlFor="cardNumber">Numéro de carte</Label>
-                        <Input id="cardNumber" placeholder="1234 5678 9012 3456" className="mt-1" />
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <Label htmlFor="expiryDate">Date d'expiration</Label>
-                          <Input id="expiryDate" placeholder="MM/AA" className="mt-1" />
-                        </div>
-                        <div>
-                          <Label htmlFor="cvv">CVV</Label>
-                          <Input id="cvv" placeholder="123" className="mt-1" />
-                        </div>
+                <div className="bg-white p-6 rounded-lg border">
+                  <h2 className="text-lg font-medium mb-4">Résumé de la commande</h2>
+                  
+                  <div className="space-y-4 mb-6">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Sous-total</span>
+                      <span>{cartTotal.toFixed(2)} €</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Livraison</span>
+                      <span>{isFreeDelivery ? 'Gratuite' : `${finalDeliveryPrice.toFixed(2)} €`}</span>
+                    </div>
+                    <div className="border-t pt-4 mt-4">
+                      <div className="flex justify-between font-semibold">
+                        <span>Total</span>
+                        <span>{orderTotal.toFixed(2)} €</span>
                       </div>
                     </div>
                   </div>
-                )}
-                
-                {paymentMethod === 'paypal' && (
-                  <div className="bg-white p-6 rounded-lg border">
-                    <p className="text-center text-muted-foreground">
-                      Vous serez redirigé vers PayPal pour finaliser votre paiement.
+                  
+                  <div className="bg-muted/30 p-4 rounded-md mb-6">
+                    <p className="text-sm">
+                      En cliquant sur "Payer maintenant", vous serez redirigé vers une page de paiement sécurisée pour finaliser votre commande.
                     </p>
                   </div>
-                )}
+                  
+                  <Button 
+                    className="w-full" 
+                    onClick={handleNext}
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Traitement en cours...
+                      </>
+                    ) : (
+                      'Payer maintenant'
+                    )}
+                  </Button>
+                </div>
               </div>
             )}
             
@@ -266,7 +426,7 @@ const Checkout = () => {
               </div>
             )}
             
-            {step !== 'confirmation' && (
+            {step !== 'confirmation' && step !== 'payment' && (
               <div className="md:col-span-1">
                 <div className="bg-white p-6 rounded-lg border sticky top-24">
                   <h2 className="text-lg font-medium mb-4">Résumé de commande</h2>
@@ -306,15 +466,20 @@ const Checkout = () => {
                     <span>{orderTotal.toFixed(2)} €</span>
                   </div>
                   
-                  <Button className="w-full" onClick={handleNext}>
-                    {step === 'delivery' ? 'Continuer vers le paiement' : 'Confirmer la commande'}
+                  <Button 
+                    className="w-full" 
+                    onClick={handleNext}
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Chargement...
+                      </>
+                    ) : (
+                      step === 'delivery' ? 'Continuer vers le paiement' : 'Confirmer la commande'
+                    )}
                   </Button>
-                  
-                  {step === 'payment' && (
-                    <Button variant="outline" className="w-full mt-2" onClick={() => setStep('delivery')}>
-                      Retour
-                    </Button>
-                  )}
                 </div>
               </div>
             )}
