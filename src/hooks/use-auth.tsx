@@ -160,8 +160,46 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }
         }
       }
+      
+      // Create or update user profile
+      await createOrUpdateUserProfile();
     } catch (error) {
       console.error('Error syncing user data:', error);
+    }
+  };
+  
+  const createOrUpdateUserProfile = async () => {
+    if (!user) return;
+    
+    try {
+      // First check if profile exists
+      const { data: existingProfile, error: checkError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .maybeSingle();
+      
+      if (checkError) {
+        console.error('Error checking profile:', checkError);
+        return;
+      }
+      
+      // If profile doesn't exist, create it
+      if (!existingProfile) {
+        const { error: insertError } = await supabase
+          .from('profiles')
+          .insert({
+            id: user.id,
+            email: user.email,
+            full_name: user.user_metadata.full_name || '',
+          });
+        
+        if (insertError) {
+          console.error('Error creating profile:', insertError);
+        }
+      }
+    } catch (error) {
+      console.error('Error in profile creation/update:', error);
     }
   };
 

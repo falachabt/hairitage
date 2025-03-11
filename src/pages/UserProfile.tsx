@@ -24,6 +24,7 @@ const UserProfile = () => {
     country: '',
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -38,13 +39,25 @@ const UserProfile = () => {
     
     try {
       setIsLoading(true);
+      setFetchError(null);
+      
+      // Use the REST API approach to fetch profile
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching profile:', error);
+        setFetchError('Erreur lors du chargement du profil. Veuillez réessayer plus tard.');
+        toast({
+          title: 'Erreur',
+          description: 'Impossible de charger votre profil. Veuillez réessayer plus tard.',
+          variant: 'destructive',
+        });
+        return;
+      }
 
       if (data) {
         setProfile({
@@ -55,9 +68,13 @@ const UserProfile = () => {
           postal_code: data.postal_code || '',
           country: data.country || '',
         });
+      } else {
+        // If profile doesn't exist, create it
+        await createProfile();
       }
     } catch (error) {
-      console.error('Error fetching profile:', error);
+      console.error('Error in fetchProfile:', error);
+      setFetchError('Erreur lors du chargement du profil. Veuillez réessayer plus tard.');
       toast({
         title: 'Erreur',
         description: 'Impossible de charger votre profil. Veuillez réessayer plus tard.',
@@ -65,6 +82,43 @@ const UserProfile = () => {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+  
+  const createProfile = async () => {
+    if (!user) return;
+    
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .insert({
+          id: user.id,
+          email: user.email,
+          full_name: user.user_metadata.full_name || '',
+        });
+      
+      if (error) {
+        console.error('Error creating profile:', error);
+        toast({
+          title: 'Erreur',
+          description: 'Impossible de créer votre profil. Veuillez réessayer plus tard.',
+          variant: 'destructive',
+        });
+        return;
+      }
+      
+      // Set initial profile state
+      setProfile({
+        full_name: user.user_metadata.full_name || '',
+        phone: '',
+        address: '',
+        city: '',
+        postal_code: '',
+        country: '',
+      });
+      
+    } catch (error) {
+      console.error('Error in createProfile:', error);
     }
   };
 
@@ -95,14 +149,30 @@ const UserProfile = () => {
         })
         .eq('id', user.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error updating profile:', error);
+        toast({
+          title: 'Erreur',
+          description: 'Impossible de mettre à jour votre profil. Veuillez réessayer plus tard.',
+          variant: 'destructive',
+        });
+        return;
+      }
 
       toast({
         title: 'Profil mis à jour',
         description: 'Vos informations ont été mises à jour avec succès.',
       });
+      
+      // Update local storage for checkout
+      localStorage.setItem('userProfile', JSON.stringify({
+        ...profile,
+        id: user.id,
+        email: user.email
+      }));
+      
     } catch (error) {
-      console.error('Error updating profile:', error);
+      console.error('Error in handleSubmit:', error);
       toast({
         title: 'Erreur',
         description: 'Impossible de mettre à jour votre profil. Veuillez réessayer plus tard.',
@@ -113,7 +183,7 @@ const UserProfile = () => {
     }
   };
 
-  if (loading || !user) {
+  if (loading) {
     return (
       <div className="min-h-screen flex flex-col">
         <Navbar />
@@ -131,6 +201,20 @@ const UserProfile = () => {
       <main className="flex-1 container py-8">
         <div className="max-w-3xl mx-auto">
           <h1 className="text-3xl font-bold mb-6">Mon Profil</h1>
+          
+          {fetchError && (
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
+              <p>{fetchError}</p>
+              <Button 
+                variant="outline" 
+                className="mt-2" 
+                onClick={fetchProfile}
+                disabled={isLoading}
+              >
+                Réessayer
+              </Button>
+            </div>
+          )}
           
           <Card className="mb-8">
             <CardHeader>
@@ -216,7 +300,7 @@ const UserProfile = () => {
               <CardDescription>Gérez les paramètres de votre compte</CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="mb-4">Email: {user.email}</p>
+              <p className="mb-4">Email: {user?.email}</p>
               <div className="flex justify-end">
                 <Button variant="destructive" onClick={signOut}>
                   Se déconnecter
