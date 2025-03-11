@@ -27,8 +27,8 @@ const MobileMenu = ({ isMenuOpen, mainNavItems, categories, closeMenu }: MobileM
   return (
     <div
       className={cn(
-        "fixed inset-0 top-16 z-30 bg-background md:hidden transition-opacity duration-200",
-        isMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+        "fixed inset-0 top-16 z-30 bg-background md:hidden transition-transform duration-200",
+        isMenuOpen ? "translate-y-0" : "translate-y-full"
       )}
     >
       <nav className="flex flex-col p-4 bg-background h-full border-t overflow-y-auto">

@@ -18,7 +18,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, setIsOpen }) => {
   return (
     <div
       className={cn(
-        "fixed inset-0 z-50 bg-background/80 backdrop-blur-sm transition-all duration-200",
+        "fixed inset-0 z-50 bg-black/50 backdrop-blur-sm transition-all duration-200",
         isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
       )}
     >
@@ -52,7 +52,13 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, setIsOpen }) => {
               {cart.map((item) => (
                 <Card key={item.id} className="flex p-3 shadow-sm">
                   <div className="w-20 h-20 rounded overflow-hidden bg-secondary/20 flex-shrink-0">
-                    <img src={item.imageUrl} alt={item.name} className="object-cover w-full h-full" />
+                    {item.imageUrl ? (
+                      <img src={item.imageUrl} alt={item.name} className="object-cover w-full h-full" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-secondary text-secondary-foreground">
+                        <ShoppingBag size={24} />
+                      </div>
+                    )}
                   </div>
                   <div className="ml-4 flex-1">
                     <h3 className="font-medium">{item.name}</h3>
