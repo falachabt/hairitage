@@ -33,16 +33,17 @@ const handler = async (req: Request): Promise<Response> => {
     console.log("Processing payment success for session:", sessionId);
 
     // Retrieve the session from Stripe
+    // Removed shipping_details from expand as it's not supported
     const session = await stripe.checkout.sessions.retrieve(sessionId, {
-      expand: ["line_items", "customer_details", "shipping_details"],
+      expand: ["line_items", "customer_details"],
     });
 
     if (session.payment_status !== "paid") {
       throw new Error("Payment not completed");
     }
 
-    // Extract shipping information
-    const shipping = session.shipping_details?.address;
+    // Extract shipping information directly from session
+    const shipping = session.shipping?.address;
     const customerEmail = session.customer_details?.email;
     const customerName = session.customer_details?.name;
 

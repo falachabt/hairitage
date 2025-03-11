@@ -62,6 +62,9 @@ export async function createPaymentSession(request: PaymentSessionRequest): Prom
 
 export async function processPaymentSuccess(sessionId: string, userId?: string): Promise<{ orderId: string }> {
   try {
+    console.log("Processing payment success for session ID:", sessionId);
+    console.log("User ID:", userId || "Anonymous user");
+    
     const { data, error } = await supabase.functions.invoke<{ success: boolean; orderId: string }>(
       'process-payment-success',
       {
@@ -78,6 +81,7 @@ export async function processPaymentSuccess(sessionId: string, userId?: string):
       throw new Error('No data returned from payment success processing');
     }
 
+    console.log("Payment processed successfully, order ID:", data.orderId);
     return { orderId: data.orderId };
   } catch (error) {
     console.error('Error in payment success service:', error);
