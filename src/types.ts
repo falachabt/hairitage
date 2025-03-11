@@ -14,6 +14,7 @@ export interface Product {
   material?: string;
   capSize?: string[];
   product_images?: Array<{ image_url: string; is_primary: boolean }>;
+  discountPercentage?: number;
 }
 
 export interface CartItem extends Product {
