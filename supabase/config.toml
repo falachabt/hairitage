@@ -28,10 +28,11 @@ enabled = true
 [realtime]
 enabled = true
 
-[[api.functions]]
+[[functions]]
 name = "create-payment-session"
 verify_jwt = false
 
-[[api.functions]]
+[[functions]]
 name = "process-payment-success"
 verify_jwt = false
+
