@@ -13,12 +13,15 @@ import {
   Truck,
   CircleDollarSign,
   CheckCircle,
-  Loader2
+  Loader2,
+  AlertCircle
 } from 'lucide-react';
 import { useCart } from '@/hooks/use-cart';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
 import { createPaymentSession, processPaymentSuccess } from '@/services/payment-service';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import AddressAutocomplete from '@/components/AddressAutocomplete';
 
 const Checkout = () => {
   const { cart, cartTotal, clearCart } = useCart();
@@ -34,6 +37,8 @@ const Checkout = () => {
   const [paymentMethod, setPaymentMethod] = useState<'card' | 'paypal'>('card');
   const [deliveryMethod, setDeliveryMethod] = useState<'standard' | 'express'>('standard');
   const [isLoading, setIsLoading] = useState(false);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
+  const [formErrors, setFormErrors] = useState<Record<string, boolean>>({});
   const [customerInfo, setCustomerInfo] = useState({
     firstName: '',
     lastName: '',
@@ -55,6 +60,37 @@ const Checkout = () => {
     setCustomerInfo((prev) => ({
       ...prev,
       [id]: value,
+    }));
+    
+    // Clear error for this field if it exists
+    if (formErrors[id]) {
+      setFormErrors((prev) => ({
+        ...prev,
+        [id]: false,
+      }));
+    }
+  };
+  
+  // Address autocomplete handler
+  const handleAddressSelect = (addressData: {
+    fullAddress: string;
+    city?: string;
+    postalCode?: string;
+    country?: string;
+  }) => {
+    setCustomerInfo((prev) => ({
+      ...prev,
+      address: addressData.fullAddress,
+      city: addressData.city || prev.city,
+      zipCode: addressData.postalCode || prev.zipCode,
+    }));
+    
+    // Clear errors for these fields
+    setFormErrors((prev) => ({
+      ...prev,
+      address: false,
+      city: addressData.city ? false : prev.city ? false : true,
+      zipCode: addressData.postalCode ? false : prev.zipCode ? false : true,
     }));
   };
   
@@ -89,19 +125,44 @@ const Checkout = () => {
     }
   }, [sessionId, paymentStatus, user, clearCart, toast]);
   
+  const validateForm = () => {
+    const requiredFields = ['firstName', 'lastName', 'email', 'address', 'city', 'zipCode'];
+    const errors: Record<string, boolean> = {};
+    let hasError = false;
+    
+    requiredFields.forEach(field => {
+      if (!customerInfo[field as keyof typeof customerInfo]) {
+        errors[field] = true;
+        hasError = true;
+      } else {
+        errors[field] = false;
+      }
+    });
+    
+    // Validate email format
+    if (customerInfo.email && !/^\S+@\S+\.\S+$/.test(customerInfo.email)) {
+      errors.email = true;
+      hasError = true;
+    }
+    
+    setFormErrors(errors);
+    return !hasError;
+  };
+  
   const handleNext = () => {
     if (step === 'delivery') {
       // Validate delivery form
-      if (!customerInfo.firstName || !customerInfo.lastName || !customerInfo.email || 
-          !customerInfo.address || !customerInfo.city || !customerInfo.zipCode) {
+      if (!validateForm()) {
         toast({
           title: "Informations incomplètes",
-          description: "Veuillez remplir tous les champs obligatoires.",
+          description: "Veuillez remplir tous les champs obligatoires correctement.",
           variant: "destructive",
         });
         return;
       }
       setStep('payment');
+      // Clear any previous payment errors
+      setPaymentError(null);
     } else if (step === 'payment') {
       handlePayment();
     }
@@ -109,6 +170,7 @@ const Checkout = () => {
 
   const handlePayment = async () => {
     setIsLoading(true);
+    setPaymentError(null);
     try {
       // Prepare payment session request
       const paymentRequest = {
@@ -139,6 +201,7 @@ const Checkout = () => {
       window.location.href = checkoutUrl;
     } catch (error) {
       console.error('Payment error:', error);
+      setPaymentError("Une erreur est survenue lors de la préparation du paiement. Veuillez réessayer.");
       toast({
         title: "Erreur de paiement",
         description: "Une erreur est survenue lors de la préparation du paiement.",
@@ -211,43 +274,60 @@ const Checkout = () => {
                 <div className="bg-white p-6 rounded-lg border">
                   <h2 className="text-lg font-medium mb-4">Informations personnelles</h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="firstName">Prénom</Label>
+                    <div className="space-y-2">
+                      <Label htmlFor="firstName" className="flex">
+                        Prénom<span className="text-destructive ml-1">*</span>
+                      </Label>
                       <Input 
                         id="firstName" 
                         placeholder="Votre prénom" 
-                        className="mt-1" 
+                        className={`mt-1 ${formErrors.firstName ? 'border-destructive' : ''}`}
                         value={customerInfo.firstName}
                         onChange={handleInputChange}
                       />
+                      {formErrors.firstName && (
+                        <p className="text-destructive text-xs">Ce champ est requis</p>
+                      )}
                     </div>
-                    <div>
-                      <Label htmlFor="lastName">Nom</Label>
+                    <div className="space-y-2">
+                      <Label htmlFor="lastName" className="flex">
+                        Nom<span className="text-destructive ml-1">*</span>
+                      </Label>
                       <Input 
                         id="lastName" 
                         placeholder="Votre nom" 
-                        className="mt-1" 
+                        className={`mt-1 ${formErrors.lastName ? 'border-destructive' : ''}`}
                         value={customerInfo.lastName}
                         onChange={handleInputChange}
                       />
+                      {formErrors.lastName && (
+                        <p className="text-destructive text-xs">Ce champ est requis</p>
+                      )}
                     </div>
-                    <div>
-                      <Label htmlFor="email">Email</Label>
+                    <div className="space-y-2">
+                      <Label htmlFor="email" className="flex">
+                        Email<span className="text-destructive ml-1">*</span>
+                      </Label>
                       <Input 
                         id="email" 
                         type="email" 
                         placeholder="votre@email.com" 
-                        className="mt-1" 
+                        className={`mt-1 ${formErrors.email ? 'border-destructive' : ''}`}
                         value={customerInfo.email}
                         onChange={handleInputChange}
                       />
+                      {formErrors.email && (
+                        <p className="text-destructive text-xs">
+                          {customerInfo.email ? 'Format d\'email invalide' : 'Ce champ est requis'}
+                        </p>
+                      )}
                     </div>
-                    <div>
+                    <div className="space-y-2">
                       <Label htmlFor="phone">Téléphone</Label>
                       <Input 
                         id="phone" 
                         placeholder="0612345678" 
-                        className="mt-1" 
+                        className="mt-1"
                         value={customerInfo.phone}
                         onChange={handleInputChange}
                       />
@@ -258,36 +338,53 @@ const Checkout = () => {
                 <div className="bg-white p-6 rounded-lg border">
                   <h2 className="text-lg font-medium mb-4">Adresse de livraison</h2>
                   <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="address">Adresse</Label>
-                      <Input 
-                        id="address" 
-                        placeholder="Numéro et nom de rue" 
-                        className="mt-1" 
-                        value={customerInfo.address}
-                        onChange={handleInputChange}
-                      />
-                    </div>
+                    <AddressAutocomplete
+                      id="address"
+                      label="Adresse"
+                      value={customerInfo.address}
+                      onChange={(value) => {
+                        setCustomerInfo(prev => ({ ...prev, address: value }));
+                        setFormErrors(prev => ({ ...prev, address: false }));
+                      }}
+                      onAddressSelect={handleAddressSelect}
+                      placeholder="Numéro et nom de rue"
+                      error={formErrors.address}
+                      required
+                    />
+                    {formErrors.address && (
+                      <p className="text-destructive text-xs">Ce champ est requis</p>
+                    )}
+                    
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="city">Ville</Label>
+                      <div className="space-y-2">
+                        <Label htmlFor="city" className="flex">
+                          Ville<span className="text-destructive ml-1">*</span>
+                        </Label>
                         <Input 
                           id="city" 
                           placeholder="Votre ville" 
-                          className="mt-1" 
+                          className={`mt-1 ${formErrors.city ? 'border-destructive' : ''}`}
                           value={customerInfo.city}
                           onChange={handleInputChange}
                         />
+                        {formErrors.city && (
+                          <p className="text-destructive text-xs">Ce champ est requis</p>
+                        )}
                       </div>
-                      <div>
-                        <Label htmlFor="zipCode">Code Postal</Label>
+                      <div className="space-y-2">
+                        <Label htmlFor="zipCode" className="flex">
+                          Code Postal<span className="text-destructive ml-1">*</span>
+                        </Label>
                         <Input 
                           id="zipCode" 
                           placeholder="75001" 
-                          className="mt-1" 
+                          className={`mt-1 ${formErrors.zipCode ? 'border-destructive' : ''}`}
                           value={customerInfo.zipCode}
                           onChange={handleInputChange}
                         />
+                        {formErrors.zipCode && (
+                          <p className="text-destructive text-xs">Ce champ est requis</p>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -333,6 +430,16 @@ const Checkout = () => {
             
             {step === 'payment' && (
               <div className="md:col-span-2 space-y-8">
+                {paymentError && (
+                  <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle>Erreur de paiement</AlertTitle>
+                    <AlertDescription>
+                      {paymentError}
+                    </AlertDescription>
+                  </Alert>
+                )}
+                
                 <div className="bg-white p-6 rounded-lg border">
                   <h2 className="text-lg font-medium mb-4">Méthode de paiement</h2>
                   <RadioGroup value={paymentMethod} onValueChange={(value) => setPaymentMethod(value as 'card' | 'paypal')}>

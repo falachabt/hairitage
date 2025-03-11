@@ -2,7 +2,13 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@13.11.0";
 
-const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY")!, {
+// Initialize Stripe with the secret key
+const stripeSecretKey = Deno.env.get("STRIPE_SECRET_KEY");
+if (!stripeSecretKey) {
+  console.error("Missing STRIPE_SECRET_KEY environment variable");
+}
+
+const stripe = new Stripe(stripeSecretKey!, {
   apiVersion: "2023-10-16",
 });
 
@@ -52,6 +58,8 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    console.log("Received request to create payment session");
+    
     const { 
       cartItems, 
       customerEmail, 
@@ -62,7 +70,8 @@ const handler = async (req: Request): Promise<Response> => {
       deliveryPrice
     }: CreatePaymentSessionRequest = await req.json();
 
-    console.log("Creating payment session with items:", cartItems);
+    console.log("Creating payment session with items:", JSON.stringify(cartItems));
+    console.log("Delivery price:", deliveryPrice);
 
     // Format line items for Stripe
     const lineItems: LineItem[] = cartItems.map((item) => ({
@@ -108,6 +117,7 @@ const handler = async (req: Request): Promise<Response> => {
     });
 
     console.log("Payment session created:", session.id);
+    console.log("Checkout URL:", session.url);
 
     return new Response(
       JSON.stringify({ 

@@ -35,6 +35,7 @@ export interface ProcessPaymentRequest {
 
 export async function createPaymentSession(request: PaymentSessionRequest): Promise<PaymentSessionResponse> {
   try {
+    console.log("Sending payment session request:", JSON.stringify(request));
     const { data, error } = await supabase.functions.invoke<PaymentSessionResponse>(
       'create-payment-session',
       {
@@ -51,6 +52,7 @@ export async function createPaymentSession(request: PaymentSessionRequest): Prom
       throw new Error('No data returned from payment session creation');
     }
 
+    console.log("Payment session created successfully:", data);
     return data;
   } catch (error) {
     console.error('Error in payment service:', error);
