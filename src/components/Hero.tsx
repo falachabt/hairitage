@@ -9,19 +9,19 @@ const Hero = () => {
   
   const slides = [
     {
-      image: 'https://images.unsplash.com/photo-1607246749946-0c1bf6baedb3?q=80&w=2070',
-      title: 'Hairitage: Révélez Votre Beauté',
-      subtitle: 'Des perruques de qualité supérieure pour une confiance et un style incomparables'
+      image: 'https://images.unsplash.com/photo-1595272568891-123402d0fb3b?q=80&w=2832&auto=format&fit=crop',
+      title: 'Hairitage: Votre Beauté, Notre Passion',
+      subtitle: 'Une collection exclusive de perruques conçues pour vous sublimer'
     },
     {
-      image: 'https://images.unsplash.com/photo-1516914589923-f105f1535f88?q=80&w=2070',
-      title: 'Élégance et Confort',
-      subtitle: 'Nos perruques sont conçues pour vous offrir confort et naturel'
+      image: 'https://images.unsplash.com/photo-1580618672591-eb180b1a973f?q=80&w=2838&auto=format&fit=crop',
+      title: 'Style & Naturel',
+      subtitle: 'Des perruques qui s\'adaptent parfaitement à votre personnalité'
     },
     {
-      image: 'https://images.unsplash.com/photo-1605980776566-0486c3ac7617?q=80&w=2070',
-      title: 'Qualité Exceptionnelle',
-      subtitle: 'Découvrez notre collection exclusive de perruques premium'
+      image: 'https://images.unsplash.com/photo-1613967193490-1d17b930c1a1?q=80&w=2787&auto=format&fit=crop',
+      title: 'Excellence & Qualité',
+      subtitle: 'Découvrez nos perruques premium pour un résultat exceptionnel'
     }
   ];
   
@@ -60,7 +60,7 @@ const Hero = () => {
                 backgroundPosition: 'center',
               }}
             >
-              <div className="absolute inset-0 bg-black/40"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-black/40"></div>
             </div>
           </div>
         ))}
@@ -68,7 +68,7 @@ const Hero = () => {
       
       {/* Content */}
       <div className="container relative z-30 h-full flex items-center px-4 md:px-6">
-        <div className="max-w-2xl transition-all duration-700 transform translate-y-0 opacity-100">
+        <div className="max-w-2xl">
           <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight text-white animate-fade-in">
             {slides[currentSlide].title}
           </h1>
@@ -76,14 +76,14 @@ const Hero = () => {
             {slides[currentSlide].subtitle}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 animate-fade-in" style={{ animationDelay: '400ms' }}>
-            <Button asChild size="lg" className="text-base bg-white text-primary hover:bg-cream-100 transition-colors duration-300">
+            <Button asChild size="lg" className="text-base font-medium bg-white text-primary hover:bg-cream-100">
               <Link to="/products">Découvrir la Collection</Link>
             </Button>
             <Button 
               asChild 
               size="lg" 
               variant="outline" 
-              className="text-base border-white text-white hover:bg-white hover:text-primary transition-colors duration-300"
+              className="text-base font-medium border-white text-white hover:bg-white/10"
             >
               <Link to="/notre-histoire">Notre Histoire</Link>
             </Button>
@@ -96,7 +96,7 @@ const Hero = () => {
         <Button
           variant="ghost"
           size="icon"
-          className="rounded-full bg-white/20 hover:bg-white/40 text-white"
+          className="rounded-full hover:bg-white/20 text-white"
           onClick={prevSlide}
         >
           <ChevronLeft className="h-6 w-6" />
@@ -106,7 +106,7 @@ const Hero = () => {
         <Button
           variant="ghost"
           size="icon"
-          className="rounded-full bg-white/20 hover:bg-white/40 text-white"
+          className="rounded-full hover:bg-white/20 text-white"
           onClick={nextSlide}
         >
           <ChevronRight className="h-6 w-6" />
@@ -125,9 +125,6 @@ const Hero = () => {
           />
         ))}
       </div>
-      
-      {/* Bottom gradient */}
-      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent z-20" />
     </section>
   );
 };
