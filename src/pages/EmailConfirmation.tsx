@@ -2,7 +2,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Envelope, Check } from 'lucide-react';
+import { Mail, Check } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
@@ -14,7 +14,7 @@ const EmailConfirmation = () => {
         <div className="w-full max-w-md px-6 text-center">
           <div className="mb-6">
             <div className="h-24 w-24 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
-              <Envelope className="h-12 w-12 text-primary" />
+              <Mail className="h-12 w-12 text-primary" />
             </div>
           </div>
           
@@ -46,3 +46,4 @@ const EmailConfirmation = () => {
 };
 
 export default EmailConfirmation;
+
