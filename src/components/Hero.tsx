@@ -53,28 +53,26 @@ const Hero = () => {
             }`}
           >
             <div 
-              className="absolute inset-0 bg-gradient-to-r from-primary/80 to-primary/70"
+              className="absolute inset-0"
               style={{ 
                 backgroundImage: `url('${slide.image}')`, 
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
-                backgroundBlendMode: 'overlay',
               }}
-            />
+            >
+              <div className="absolute inset-0 bg-black/40"></div>
+            </div>
           </div>
         ))}
       </div>
       
-      {/* Overlay pattern */}
-      <div className="absolute inset-0 bg-[url('/noise.png')] opacity-20 z-20" />
-      
       {/* Content */}
       <div className="container relative z-30 h-full flex items-center px-4 md:px-6">
         <div className="max-w-2xl transition-all duration-700 transform translate-y-0 opacity-100">
-          <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight text-white [text-shadow:_0_1px_20px_rgb(0_0_0_/_20%)] animate-fade-in">
+          <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight text-white animate-fade-in">
             {slides[currentSlide].title}
           </h1>
-          <p className="text-lg md:text-xl mb-8 text-white/90 [text-shadow:_0_1px_10px_rgb(0_0_0_/_20%)] animate-fade-in" style={{ animationDelay: '200ms' }}>
+          <p className="text-lg md:text-xl mb-8 text-white/90 animate-fade-in" style={{ animationDelay: '200ms' }}>
             {slides[currentSlide].subtitle}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 animate-fade-in" style={{ animationDelay: '400ms' }}>
@@ -98,7 +96,7 @@ const Hero = () => {
         <Button
           variant="ghost"
           size="icon"
-          className="rounded-full bg-white/20 backdrop-blur-sm hover:bg-white/40 text-white"
+          className="rounded-full bg-white/20 hover:bg-white/40 text-white"
           onClick={prevSlide}
         >
           <ChevronLeft className="h-6 w-6" />
@@ -108,7 +106,7 @@ const Hero = () => {
         <Button
           variant="ghost"
           size="icon"
-          className="rounded-full bg-white/20 backdrop-blur-sm hover:bg-white/40 text-white"
+          className="rounded-full bg-white/20 hover:bg-white/40 text-white"
           onClick={nextSlide}
         >
           <ChevronRight className="h-6 w-6" />
