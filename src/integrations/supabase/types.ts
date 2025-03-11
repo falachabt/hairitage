@@ -131,6 +131,42 @@ export type Database = {
           },
         ]
       }
+      product_promotions: {
+        Row: {
+          created_at: string | null
+          id: string
+          product_id: string
+          promotion_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          product_id: string
+          promotion_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          product_id?: string
+          promotion_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_promotions_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_promotions_promotion_id_fkey"
+            columns: ["promotion_id"]
+            isOneToOne: false
+            referencedRelation: "promotions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
           cap_size: string[] | null
@@ -226,6 +262,42 @@ export type Database = {
           phone?: string | null
           postal_code?: string | null
           role?: Database["public"]["Enums"]["user_role"] | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      promotions: {
+        Row: {
+          active: boolean | null
+          created_at: string | null
+          description: string | null
+          discount_percentage: number
+          end_date: string
+          id: string
+          name: string
+          start_date: string
+          updated_at: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          created_at?: string | null
+          description?: string | null
+          discount_percentage: number
+          end_date: string
+          id?: string
+          name: string
+          start_date: string
+          updated_at?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          created_at?: string | null
+          description?: string | null
+          discount_percentage?: number
+          end_date?: string
+          id?: string
+          name?: string
+          start_date?: string
           updated_at?: string | null
         }
         Relationships: []

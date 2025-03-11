@@ -1,3 +1,4 @@
+
 export interface Product {
   id: string;
   name: string;
@@ -57,6 +58,21 @@ export interface Order {
   updated_at: string;
 }
 
+export interface OrderItem {
+  id: string;
+  order_id: string;
+  product_id: string;
+  quantity: number;
+  unit_price: number;
+  total_price: number;
+  product?: Product;
+}
+
+export interface OrderWithItems extends Order {
+  items?: OrderItem[];
+  customer?: Profile;
+}
+
 export interface UserFavorite {
   id: string;
   user_id: string;
@@ -76,4 +92,25 @@ export interface Profile {
   role: 'admin' | 'customer';
   created_at: string;
   updated_at: string;
+}
+
+export interface Promotion {
+  id: string;
+  name: string;
+  description: string | null;
+  discount_percentage: number;
+  active: boolean;
+  start_date: string;
+  end_date: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ProductPromotion {
+  id: string;
+  product_id: string;
+  promotion_id: string;
+  created_at: string;
+  product?: Product;
+  promotion?: Promotion;
 }
