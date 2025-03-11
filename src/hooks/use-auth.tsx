@@ -59,6 +59,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           description: "Veuillez vérifier votre email pour confirmer votre compte",
         });
       }
+
       
       return { error };
     } catch (error) {
