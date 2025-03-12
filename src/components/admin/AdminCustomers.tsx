@@ -192,59 +192,57 @@ const AdminCustomers = () => {
 
               <div className="md:col-span-2">
                 <h3 className="text-sm font-semibold mb-2">Historique des commandes</h3>
-                {viewingCustomer && (
-                  <>
-                    {const customerOrders = getCustomerOrders(viewingCustomer.id)}
-                    {customerOrders.length > 0 ? (
-                      <div className="rounded-md border overflow-hidden">
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead>ID</TableHead>
-                              <TableHead>Date</TableHead>
-                              <TableHead>Montant</TableHead>
-                              <TableHead>Statut</TableHead>
-                              <TableHead>Paiement</TableHead>
+                {(() => {
+                  const customerOrders = getCustomerOrders(viewingCustomer.id);
+                  return customerOrders.length > 0 ? (
+                    <div className="rounded-md border overflow-hidden">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>ID</TableHead>
+                            <TableHead>Date</TableHead>
+                            <TableHead>Montant</TableHead>
+                            <TableHead>Statut</TableHead>
+                            <TableHead>Paiement</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {customerOrders.map(order => (
+                            <TableRow key={order.id}>
+                              <TableCell className="font-medium">#{order.id.substring(0, 8)}</TableCell>
+                              <TableCell>{format(new Date(order.created_at), 'dd/MM/yyyy', { locale: fr })}</TableCell>
+                              <TableCell>{Number(order.total_amount).toFixed(2)} €</TableCell>
+                              <TableCell>
+                                <Badge variant={
+                                  order.status === 'completed' 
+                                    ? 'success' 
+                                    : order.status === 'processing' 
+                                      ? 'default' 
+                                      : 'secondary'
+                                } className={
+                                  order.status === 'completed' ? 'bg-green-500 text-white' : ''
+                                }>
+                                  {order.status === 'completed' 
+                                    ? 'Livrée' 
+                                    : order.status === 'processing' 
+                                      ? 'En cours' 
+                                      : 'En attente'}
+                                </Badge>
+                              </TableCell>
+                              <TableCell>
+                                <Badge variant={order.payment_status === 'paid' ? 'outline' : 'destructive'}>
+                                  {order.payment_status === 'paid' ? 'Payée' : 'En attente'}
+                                </Badge>
+                              </TableCell>
                             </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {customerOrders.map(order => (
-                              <TableRow key={order.id}>
-                                <TableCell className="font-medium">#{order.id.substring(0, 8)}</TableCell>
-                                <TableCell>{format(new Date(order.created_at), 'dd/MM/yyyy', { locale: fr })}</TableCell>
-                                <TableCell>{Number(order.total_amount).toFixed(2)} €</TableCell>
-                                <TableCell>
-                                  <Badge variant={
-                                    order.status === 'completed' 
-                                      ? 'success' 
-                                      : order.status === 'processing' 
-                                        ? 'default' 
-                                        : 'secondary'
-                                  } className={
-                                    order.status === 'completed' ? 'bg-green-500 text-white' : ''
-                                  }>
-                                    {order.status === 'completed' 
-                                      ? 'Livrée' 
-                                      : order.status === 'processing' 
-                                        ? 'En cours' 
-                                        : 'En attente'}
-                                  </Badge>
-                                </TableCell>
-                                <TableCell>
-                                  <Badge variant={order.payment_status === 'paid' ? 'outline' : 'destructive'}>
-                                    {order.payment_status === 'paid' ? 'Payée' : 'En attente'}
-                                  </Badge>
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </div>
-                    ) : (
-                      <p className="text-sm text-muted-foreground">Ce client n'a pas encore passé de commande.</p>
-                    )}
-                  </>
-                )}
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">Ce client n'a pas encore passé de commande.</p>
+                  );
+                })()}
               </div>
             </div>
           )}
