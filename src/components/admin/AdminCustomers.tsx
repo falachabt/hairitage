@@ -215,7 +215,7 @@ const AdminCustomers = () => {
                               <TableCell>
                                 <Badge variant={
                                   order.status === 'completed' 
-                                    ? 'success' 
+                                    ? 'default' 
                                     : order.status === 'processing' 
                                       ? 'default' 
                                       : 'secondary'

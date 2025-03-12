@@ -23,6 +23,7 @@ import OrderDetail from "./pages/OrderDetail";
 import NotreHistoire from "./pages/NotrHistoire";
 import EmailConfirmation from "./pages/EmailConfirmation";
 import EmailConfirmed from "./pages/EmailConfirmed";
+import Admin from "./pages/Admin";
 
 const queryClient = new QueryClient();
 
@@ -53,6 +54,7 @@ const App = () => (
                     <Route path="/notre-histoire" element={<NotreHistoire />} />
                     <Route path="/email-confirmation" element={<EmailConfirmation />} />
                     <Route path="/email-confirmed" element={<EmailConfirmed />} />
+                    <Route path="/admin" element={<Admin />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </div>

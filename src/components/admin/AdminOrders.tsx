@@ -80,7 +80,7 @@ const AdminOrders = () => {
       case 'processing':
         return <Badge variant="default" className="flex items-center gap-1"><Truck size={12} /> En cours</Badge>;
       case 'completed':
-        return <Badge variant="success" className="bg-green-500 text-white flex items-center gap-1"><CheckCircle size={12} /> Livrée</Badge>;
+        return <Badge variant="default" className="bg-green-500 text-white flex items-center gap-1"><CheckCircle size={12} /> Livrée</Badge>;
       default:
         return <Badge>{status}</Badge>;
     }
